@@ -9,12 +9,12 @@ import db
 app = Flask(__name__)
 mysql = MySQL()
 
-ENV = 'development'
+db_settings = db.DatabaseInterface().return_options()
 
-app.config['MYSQL_DATABASE_USER'] = db.settings[ENV]['user']
-app.config['MYSQL_DATABASE_PASSWORD'] = db.settings[ENV]['password']
-app.config['MYSQL_DATABASE_DB'] = db.settings[ENV]['name']
-app.config['MYSQL_DATABASE_HOST'] = db.settings[ENV]['host']
+app.config['MYSQL_DATABASE_USER'] = db_settings['user']
+app.config['MYSQL_DATABASE_PASSWORD'] = db_settings['password']
+app.config['MYSQL_DATABASE_DB'] = db_settings['name']
+app.config['MYSQL_DATABASE_HOST'] = db_settings['host']
 mysql.init_app(app)
 
 VERSION = "v0.1"
