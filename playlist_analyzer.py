@@ -1,27 +1,24 @@
-import json
 from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+import db
 
 class PlaylistAnalyzer:
-  def __init__(self, playlist):
+  def __init__(self, playlist, training):
+    self.training = training
     self.playlist = playlist
-
-  def return_playlist(self):
-    return self.playlist
+    self.tracks = []
 
   def parse_playlist(self):
-    self.tracks = self.playlist["songlist"]
-    name = self.playlist["_id"]
-    self.tracks = []
     for key, value in self.tracks.items():
-      parsed_track = self.manage_track(value)
+      parsed_track = self.parse_track(value)
       self.tracks.append(parsed_track)
 
-  def manage_track(self, track):
+  def parse_track(self, track):
     parsed = {}
     parsed["spotifyId"]        = track["spotifyId"]
-    parsed["artist"]           = track["artist"]
-    parsed["album"]            = track["album"]
-    parsed["name"]             = track["name"]
     parsed["duration_ms"]      = track["duration_ms"]
     parsed["danceability"]     = track["features"]["danceability"]
     parsed["acousticness"]     = track["features"]["acousticness"]
@@ -35,7 +32,5 @@ class PlaylistAnalyzer:
     parsed["time_signature"]   = track["features"]["time_signature"]
     return parsed
 
-  def check_correctness(self):
-    return True
-
-  def pca(self):
+  def save_to_db(self):
+    pass
