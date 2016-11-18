@@ -1,21 +1,14 @@
 from flask import Flask, jsonify, make_response, request
-from flask_mysqldb import MySQL
 import json
+import MySQLdb
 
 import playlist_analyzer as pa
 import authorizer as auth
 import db
 
 app = Flask(__name__)
-mysql = MySQL()
-
 db_settings = db.DatabaseInterface().return_options()
-
-app.config['MYSQL_DATABASE_USER'] = db_settings['user']
-app.config['MYSQL_DATABASE_PASSWORD'] = db_settings['password']
-app.config['MYSQL_DATABASE_DB'] = db_settings['name']
-app.config['MYSQL_DATABASE_HOST'] = db_settings['host']
-mysql.init_app(app)
+mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 
 VERSION = "v0.1"
 def versionate_route(route):
@@ -58,7 +51,7 @@ def playlist_post():
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
 
   playlist = body['playlist']
-  name = pa.PlaylistAnalyzer(playlist).parse_playlist()
+  name = pa.PlaylistAnalyzer(playlist, True, mysql).parse_playlist().store_to_db()
   return jsonify(name), 201
 
 @app.route(versionate_route('playlist_seed'), methods=['POST'])

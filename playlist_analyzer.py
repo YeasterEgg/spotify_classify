@@ -1,24 +1,23 @@
 from sklearn.decomposition import PCA
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import stats
-import db
 
 class PlaylistAnalyzer:
-  def __init__(self, playlist, training):
+  def __init__(self, playlist, training, mysql):
     self.training = training
-    self.playlist = playlist
+    self.playlist = playlist["songlist"]
     self.tracks = []
+    self.mysql = mysql
 
   def parse_playlist(self):
-    for key, value in self.tracks.items():
+    for key, value in self.playlist.items():
       parsed_track = self.parse_track(value)
       self.tracks.append(parsed_track)
+    return self
 
   def parse_track(self, track):
     parsed = {}
-    parsed["spotifyId"]        = track["spotifyId"]
+    parsed["spotify_id"]        = track["spotifyId"]
     parsed["duration_ms"]      = track["duration_ms"]
     parsed["danceability"]     = track["features"]["danceability"]
     parsed["acousticness"]     = track["features"]["acousticness"]
@@ -32,5 +31,11 @@ class PlaylistAnalyzer:
     parsed["time_signature"]   = track["features"]["time_signature"]
     return parsed
 
-  def save_to_db(self):
-    pass
+  def store_to_db(self):
+    cursor = self.mysql.cursor()
+    for track in self.tracks:
+      self.send_track_to_db(cursor, track)
+
+  def send_track_to_db(self, cursor, track):
+    cursor.execute("""INSERT INTO tracks VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
+    self.mysql.commit()
