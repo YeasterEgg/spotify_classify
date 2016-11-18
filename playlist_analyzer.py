@@ -41,6 +41,7 @@ class PlaylistAnalyzer:
     cursor = self.mysql.cursor()
     if cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}'".format(track["spotify_id"])):
       # print("Track {} already known.".format(track["spotify_id"]))
+      pass
     else:
       cursor = self.mysql.cursor()
       cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
