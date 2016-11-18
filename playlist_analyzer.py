@@ -8,6 +8,7 @@ class PlaylistAnalyzer:
     self.playlist = playlist["songlist"]
     self.tracks = []
     self.mysql = mysql
+    self.mood = playlist["mood"]
 
   def parse_playlist(self):
     for key, value in self.playlist.items():
@@ -17,7 +18,8 @@ class PlaylistAnalyzer:
 
   def parse_track(self, track):
     parsed = {}
-    parsed["spotify_id"]        = track["spotifyId"]
+    parsed["spotify_id"]       = track["spotifyId"]
+    parsed["mood"]             = self.mood
     parsed["duration_ms"]      = track["duration_ms"]
     parsed["danceability"]     = track["features"]["danceability"]
     parsed["acousticness"]     = track["features"]["acousticness"]
@@ -37,5 +39,5 @@ class PlaylistAnalyzer:
       self.send_track_to_db(cursor, track)
 
   def send_track_to_db(self, cursor, track):
-    cursor.execute("""INSERT INTO tracks VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
+    cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
     self.mysql.commit()

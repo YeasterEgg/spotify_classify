@@ -54,27 +54,6 @@ def playlist_post():
   name = pa.PlaylistAnalyzer(playlist, True, mysql).parse_playlist().store_to_db()
   return jsonify(name), 201
 
-@app.route(versionate_route('playlist_seed'), methods=['POST'])
-def playlist_seed_post():
-  if not request.json:
-    return jsonify({'error': 'WRONG'}), 400
-  if not 'playlist' in request.json:
-    return jsonify({'error': 'Json not correct'}), 400
-  if not 'token' in request.json:
-    return jsonify({'error': 'Needs a Token!'}), 403
-
-  body = json.loads(request.json)
-  token = body['token']['token']
-  ts = body['token']['ts']
-  authorized = auth.Authorizer(token, ts).correct()
-
-  if not authorized:
-    return jsonify({'error': 'Token not Valid!', 'token': token}), 403
-
-  playlist = body['playlist']
-  name = pa.PlaylistAnalyzer(playlist).playlist_seed()
-  return jsonify("THANKS!"), 201
-
 @app.route(versionate_route('playlist'), methods=['GET'])
 def playlist_get():
   return "This is a POST endpoint!"

@@ -1,5 +1,6 @@
 # CREATE TABLE tracks (
 #   spotify_id VARCHAR(45) NOT NULL,
+#   mood VARCHAR(45) NOT NULL,
 #   duration_ms BIGINT NULL,
 #   danceability DECIMAL(7,3) NULL,
 #   energy DECIMAL(7,3) NULL,
