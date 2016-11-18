@@ -51,8 +51,11 @@ def playlist_post():
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
 
   playlist = body['playlist']
-  name = analyzer.load_playlist(playlist, False).parse_playlist().store_to_db()
-  return jsonify(name), 201
+  result = analyzer.store_playlist(playlist)
+  if result:
+    return jsonify("OK"), 201
+  else:
+    return jsonify("NOPE"), 500
 
 @app.route(versionate_route('playlist'), methods=['GET'])
 def playlist_get():

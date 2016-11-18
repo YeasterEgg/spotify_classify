@@ -9,10 +9,18 @@
 #   instrumentalness DECIMAL(7,3) NULL,
 #   tempo DECIMAL(7,3) NULL,
 #   speechiness DECIMAL(7,3) NULL,
-#   time_signature DECIMAL(7,3) NULL,
 #   loudness DECIMAL(7,3) NULL,
 #   acousticness DECIMAL(7,3) NULL,
+#   training BOOL NULL,
+#   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (spotify_id)
+#   );
+
+# CREATE TABLE pcs (
+#   id INT NOT NULL AUTO_INCREMENT,
+#   variance DECIMAL(7,3) NULL,
+#   params NVARCHAR(1000),
+#   PRIMARY KEY (id)
 #   );
 
 import os
