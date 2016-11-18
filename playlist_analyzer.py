@@ -34,10 +34,24 @@ class PlaylistAnalyzer:
     return parsed
 
   def store_to_db(self):
-    cursor = self.mysql.cursor()
     for track in self.tracks:
-      self.send_track_to_db(cursor, track)
+      self.send_track_to_db(track)
 
-  def send_track_to_db(self, cursor, track):
-    cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
-    self.mysql.commit()
+  def send_track_to_db(self, track):
+    cursor = self.mysql.cursor()
+    if cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}'".format(track["spotify_id"])):
+      # print("Track {} already known.".format(track["spotify_id"]))
+    else:
+      cursor = self.mysql.cursor()
+      cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
+      self.mysql.commit()
+
+  def load_mood(self, mood):
+    cursor = self.mysql.cursor()
+    cursor.execute("SELECT * FROM tracks WHERE mood = '{}'".format(mood))
+    result = cursor.fetchall()
+    return result
+
+  def analyze_tracks(self, mood):
+    pass
+
