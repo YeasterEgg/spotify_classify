@@ -1,14 +1,18 @@
 from sklearn.decomposition import PCA
 import numpy as np
 from scipy import stats
+import pandas as pd
 
 class PlaylistAnalyzer:
-  def __init__(self, playlist, training, mysql):
+  def __init__(self, mysql):
+    self.mysql = mysql
+    self.tracks = []
+
+  def load_playlist(self, playlist, training):
     self.training = training
     self.playlist = playlist["songlist"]
-    self.tracks = []
-    self.mysql = mysql
     self.mood = playlist["mood"]
+    return self
 
   def parse_playlist(self):
     for key, value in self.playlist.items():
@@ -44,14 +48,12 @@ class PlaylistAnalyzer:
       pass
     else:
       cursor = self.mysql.cursor()
-      cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
+      cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, time_signature, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["time_signature"]))
       self.mysql.commit()
 
   def load_mood(self, mood):
-    cursor = self.mysql.cursor()
-    cursor.execute("SELECT * FROM tracks WHERE mood = '{}'".format(mood))
-    result = cursor.fetchall()
-    return result
+    dataset = pd.read_sql_query("SELECT * FROM tracks WHERE mood = '{}'".format(mood), con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1)
+    return dataset
 
   def analyze_tracks(self, mood):
     pass

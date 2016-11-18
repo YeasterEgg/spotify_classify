@@ -9,11 +9,11 @@ import db
 app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
 mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
+analyzer = pa.PlaylistAnalyzer(mysql)
 
 VERSION = "v0.1"
 def versionate_route(route):
   return ('/' + VERSION + '/' + route)
-
 
 @app.route('/version', methods=['GET'])
 def version():
@@ -51,7 +51,7 @@ def playlist_post():
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
 
   playlist = body['playlist']
-  name = pa.PlaylistAnalyzer(playlist, True, mysql).parse_playlist().store_to_db()
+  name = analyzer.load_playlist(playlist, False).parse_playlist().store_to_db()
   return jsonify(name), 201
 
 @app.route(versionate_route('playlist'), methods=['GET'])
