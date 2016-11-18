@@ -1,7 +1,7 @@
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-import numpy as np
 from scipy import stats
+import numpy as np
 import pandas as pd
 
 class PlaylistAnalyzer:
@@ -43,23 +43,30 @@ class PlaylistAnalyzer:
       print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
     else:
       cursor = self.mysql.cursor()
-      cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"]))
+      cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
       self.mysql.commit()
 
 ## LOADING METHODS
 
   def load_mood(self, mood):
-    dirty_mood_df = pd.read_sql_query("SELECT * FROM tracks WHERE mood = '{}'".format(mood), con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1)
+    dirty_mood_df = pd.read_sql_query("SELECT * FROM tracks WHERE mood = '{}'".format(mood), con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
     return self.normalize(dirty_mood_df)
 
   def load_tracks(self):
-    dirty_df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1)
+    dirty_df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
     return self.normalize(dirty_df)
+
+  def load_training(self):
+    dirty_training_df = pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
+    return self.normalize(dirty_training_df)
 
 ## ANALYTIC METHODS
 
   def normalize(self, df):
-    return (df - df.mean()) / (df.max() - df.min())
+    if(df.max() == df.min()):
+      return df
+    else:
+      return (df - df.mean()) / (df.max() - df.min())
 
   def klusterize(self, df, n_kl = 4):
     kmeans = KMeans(init='k-means++', n_clusters=n_kl, n_init=10)
@@ -68,4 +75,9 @@ class PlaylistAnalyzer:
   def pca(self, df, n_pc = 3):
     pca = PCA(n_components=n_pc)
     return pca.fit(df)
+
+## TRAINING METHODS
+
+  def store_training_pca(self, n_pc = 3, v = 1):
+    pass
 

@@ -20,6 +20,7 @@
 #   id INT NOT NULL AUTO_INCREMENT,
 #   variance DECIMAL(7,3) NULL,
 #   params NVARCHAR(1000),
+#   version INT,
 #   PRIMARY KEY (id)
 #   );
 
