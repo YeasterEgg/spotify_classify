@@ -12,15 +12,16 @@
 #   loudness DECIMAL(7,3) NULL,
 #   acousticness DECIMAL(7,3) NULL,
 #   training BOOL NULL,
-#   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (spotify_id)
 #   );
 
 # CREATE TABLE pcs (
 #   id INT NOT NULL AUTO_INCREMENT,
 #   variance DECIMAL(7,3) NULL,
-#   params NVARCHAR(1000),
+#   ev DECIMAL(7,3) NULL,
+#   params VARCHAR(50),
 #   version INT,
+#   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)
 #   );
 

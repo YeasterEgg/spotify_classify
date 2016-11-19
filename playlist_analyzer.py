@@ -8,9 +8,9 @@ class PlaylistAnalyzer:
   def __init__(self, mysql):
     self.mysql = mysql
 
-## STORING METHODS
+## PARSING METHODS
 
-  def store_playlist(self, playlist):
+  def parse_playlist(self, playlist):
     for key, value in playlist["songlist"].items():
       self.parse_track(playlist, value)
     return True
@@ -31,13 +31,17 @@ class PlaylistAnalyzer:
     parsed["speechiness"]      = track["features"]["speechiness"]
     parsed["loudness"]         = track["features"]["loudness"]
     parsed["count"]            = 0
-    self.send_track_to_db(parsed)
+    self.track_to_db(parsed)
 
-  def store_to_db(self):
-    for track in self.tracks:
-      self.send_track_to_db(track)
+## STORING METHODS
 
-  def send_track_to_db(self, track):
+  def pc_to_db(self, pc):
+    cursor = self.mysql.cursor()
+    for key, value in pc['ev'].items():
+      cursor.execute("""INSERT INTO pcs (version, param, ev, variance, created_at) VALUES (%s,%s,%s,%s, NOW())""",(pc["ver"], key, value, pc["var"]))
+    self.mysql.commit()
+
+  def track_to_db(self, track):
     cursor = self.mysql.cursor()
     if cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}'".format(track["spotify_id"])):
       print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
@@ -54,6 +58,7 @@ class PlaylistAnalyzer:
 
   def load_tracks(self):
     dirty_df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
+    print(dirty_df)
     return self.normalize(dirty_df)
 
   def load_training(self):
@@ -63,7 +68,9 @@ class PlaylistAnalyzer:
 ## ANALYTIC METHODS
 
   def normalize(self, df):
-    if(df.max() == df.min()):
+    denominators = df.max() - df.min()
+    zeroes = [x for x in denominators if x == 0]
+    if len(zeroes) > 0:
       return df
     else:
       return (df - df.mean()) / (df.max() - df.min())
@@ -78,6 +85,12 @@ class PlaylistAnalyzer:
 
 ## TRAINING METHODS
 
-  def store_training_pca(self, n_pc = 3, v = 1):
-    pass
+  def create_training_set(self, n_pc = 4, ver = 1):
+    df = self.load_training()
+    pca = self.pca(df)
+    columns = df.columns
+    variances = pca.explained_variance_ratio_
+    for idx, component in enumerate(pca.components_):
+      pc = {'ver': ver, 'var': variances[idx], 'ev': dict(zip(columns, component))}
+      self.pc_to_db(pc)
 

@@ -51,7 +51,7 @@ def playlist_post():
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
 
   playlist = body['playlist']
-  result = analyzer.store_playlist(playlist)
+  result = analyzer.parse_playlist(playlist)
   if result:
     return jsonify("OK"), 201
   else:
