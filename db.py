@@ -1,24 +1,26 @@
 # CREATE TABLE tracks (
+#   id INT NOT NULL AUTO_INCREMENT,
 #   spotify_id VARCHAR(45) NOT NULL,
 #   mood VARCHAR(45) NOT NULL,
 #   duration_ms BIGINT NULL,
-#   danceability DECIMAL(7,3) NULL,
-#   energy DECIMAL(7,3) NULL,
-#   liveness DECIMAL(7,3) NULL,
-#   valence DECIMAL(7,3) NULL,
-#   instrumentalness DECIMAL(7,3) NULL,
-#   tempo DECIMAL(7,3) NULL,
-#   speechiness DECIMAL(7,3) NULL,
-#   loudness DECIMAL(7,3) NULL,
-#   acousticness DECIMAL(7,3) NULL,
+#   danceability DECIMAL(9,6) NULL,
+#   energy DECIMAL(9,6) NULL,
+#   liveness DECIMAL(9,6) NULL,
+#   valence DECIMAL(9,6) NULL,
+#   instrumentalness DECIMAL(9,6) NULL,
+#   tempo DECIMAL(9,6) NULL,
+#   speechiness DECIMAL(9,6) NULL,
+#   loudness DECIMAL(9,6) NULL,
+#   acousticness DECIMAL(9,6) NULL,
 #   training BOOL NULL,
-#   PRIMARY KEY (spotify_id)
+#   created_at TIMESTAMP NULL,
+#   PRIMARY KEY (id, spotify_id)
 #   );
 
 # CREATE TABLE pcs (
 #   id INT NOT NULL AUTO_INCREMENT,
-#   variance DECIMAL(7,3) NULL,
-#   ev DECIMAL(7,3) NULL,
+#   variance DECIMAL(9,6) NULL,
+#   ev DECIMAL(9,6) NULL,
 #   params VARCHAR(50),
 #   version INT,
 #   created_at TIMESTAMP NULL,

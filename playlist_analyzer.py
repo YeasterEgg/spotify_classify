@@ -43,7 +43,7 @@ class PlaylistAnalyzer:
 
   def track_to_db(self, track):
     cursor = self.mysql.cursor()
-    if cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}'".format(track["spotify_id"])):
+    if cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(track["spotify_id"], track["training"])):
       print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
     else:
       cursor = self.mysql.cursor()
