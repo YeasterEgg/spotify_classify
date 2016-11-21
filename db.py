@@ -20,8 +20,21 @@
 # CREATE TABLE pcs (
 #   id INT NOT NULL AUTO_INCREMENT,
 #   variance DECIMAL(9,6) NULL,
+#   param VARCHAR(45) NOT NULL,
 #   ev DECIMAL(9,6) NULL,
 #   params VARCHAR(50),
+#   version INT,
+#   created_at TIMESTAMP NULL,
+#   PRIMARY KEY (id)
+#   );
+
+# CREATE TABLE klusters (
+#   id INT NOT NULL AUTO_INCREMENT,
+#   name VARCHAR(45) NOT NULL,
+#   pc1 DECIMAL(9,6) NULL,
+#   pc2 DECIMAL(9,6) NULL,
+#   pc3 DECIMAL(9,6) NULL,
+#   pc4 DECIMAL(9,6) NULL,
 #   version INT,
 #   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)

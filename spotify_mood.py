@@ -3,6 +3,7 @@ import json
 import MySQLdb
 
 import playlist_analyzer as pa
+import playlist_training as pt
 import authorizer as auth
 import db
 
@@ -10,6 +11,7 @@ app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
 mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 analyzer = pa.PlaylistAnalyzer(mysql)
+training = pt.PlaylistTraining(mysql)
 
 VERSION = "v0.1"
 def versionate_route(route):
