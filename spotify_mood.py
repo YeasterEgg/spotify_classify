@@ -55,6 +55,7 @@ def playlist_post():
   playlist = body['playlist']
   result = analyzer.parse_playlist(playlist)
   if result:
+    analyzer.pca_playlist(result)
     return jsonify("OK"), 201
   else:
     return jsonify("NOPE"), 500

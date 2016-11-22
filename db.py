@@ -21,6 +21,15 @@
 #   id INT NOT NULL AUTO_INCREMENT,
 #   variance DECIMAL(12,8) NULL,
 #   version INT,
+#   rank INT,
+#   created_at TIMESTAMP NULL,
+#   PRIMARY KEY (id)
+#   );
+
+# CREATE TABLE normalization_params (
+#   id INT NOT NULL AUTO_INCREMENT,
+#   version INT,
+#   mean INT,
 #   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)
 #   );

@@ -12,9 +12,9 @@ class PlaylistTraining:
 
 ## STORING METHODS
 
-  def pc_to_db(self, pc):
+  def pc_to_db(self, pc, idx):
     cursor = self.mysql.cursor()
-    cursor.execute("""INSERT INTO pcs (version, variance, created_at) VALUES (%s,%s, NOW())""",(pc["ver"], pc["var"]))
+    cursor.execute("""INSERT INTO pcs (version, variance, rank, created_at) VALUES (%s,%s,%s, NOW())""",(pc["ver"], pc["var"], idx))
     pc_id = cursor.lastrowid
     for key, value in pc['ev'].items():
       cursor.execute("""INSERT INTO evs (pc_id, param, coefficient, created_at) VALUES (%s,%s,%s, NOW())""",(pc_id, key, value))
@@ -32,9 +32,9 @@ class PlaylistTraining:
     dirty_training_df = pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
     return self.normalize(dirty_training_df, droppable_columns)
 
-  def last_version(self, variable):
+  def last_version(self):
     cursor = self.mysql.cursor()
-    cursor.execute("SELECT MAX(version) FROM {} AS version".format(variable))
+    cursor.execute("SELECT MAX(version) FROM pcs AS version")
     version = cursor.fetchone()[0]
     if version is not None:
       return version
@@ -74,12 +74,12 @@ class PlaylistTraining:
 
   def store_pcs(self, df, pcs):
     variances = pcs.explained_variance_ratio_
-    columns = df.columns
-    pc_version = int(self.last_version("pcs")) + 1
+    columns = df.drop(["id", "mood"], axis=1).columns
+    pc_version = int(self.last_version()) + 1
     ids = {}
     for idx, component in enumerate(pcs.components_):
       pc = {'ver': pc_version, 'var': variances[idx], 'ev': dict(zip(columns, component))}
-      pc_id = self.pc_to_db(pc)
+      pc_id = self.pc_to_db(pc, (idx + 1))
       ids["pc" + str(idx + 1)] = pc_id
     return {"pc_ids": ids, "pc_version":  pc_version}
 
