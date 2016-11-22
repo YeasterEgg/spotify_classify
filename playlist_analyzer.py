@@ -38,11 +38,15 @@ class PlaylistAnalyzer:
 
 ## LOADING METHODS
 
-  def load_training(self):
-    return pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
-
   def last_version(self):
     return 0
+
+  def load_pca(self):
+    current = os.getcwd()
+    filename = os.path.join(current, "pca_model", "pca.pkl")
+    with open(filename, 'rb') as fo:
+      pca = joblib.load(fo)
+    return pca
 
 ## STORING METHODS
 
@@ -55,10 +59,14 @@ class PlaylistAnalyzer:
 
 ## ANALYSIS METHODS
 
-  def pca_playlist(self, playlist):
-    current = os.getcwd()
-    filename = os.path.join(current, "pca_model", "pca.pkl")
-    with open(filename, 'rb') as fo:
-      pca = joblib.load(fo)
-    return pca
+  def transform_df(self, playlist, pca):
+    df = pd.DataFrame(playlist).drop(["mood", "training", "count"], axis=1)
+    clean_df = df.set_index("spotify_id")
+    transformed_df = pca.transform(clean_df)
+    return pd.DataFrame(transformed_df)
 
+  def pca_playlist(self, playlist):
+    pca = self.load_pca()
+    transformed_df = self.transform_df(playlist, pca)
+    print(transformed_df)
+    return 'ciao'

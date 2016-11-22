@@ -20,11 +20,11 @@
 # CREATE TABLE klusters (
 #   id INT NOT NULL AUTO_INCREMENT,
 #   name VARCHAR(45) NOT NULL,
-#   pc1 DECIMAL(12,8) NULL,
-#   pc2 DECIMAL(12,8) NULL,
-#   pc3 DECIMAL(12,8) NULL,
-#   pc4 DECIMAL(12,8) NULL,
-#   pc_version INT,
+#   pc1 DECIMAL(16,8) NULL,
+#   pc2 DECIMAL(16,8) NULL,
+#   pc3 DECIMAL(16,8) NULL,
+#   pc4 DECIMAL(16,8) NULL,
+#   version INT,
 #   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)
 #   );

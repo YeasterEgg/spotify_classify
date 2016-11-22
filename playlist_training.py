@@ -21,15 +21,14 @@ class PlaylistTraining:
     with open(filename, 'wb') as fo:
       joblib.dump(pca, fo)
 
-  def s(self, kluster):
+  def kluster_to_db(self, kluster):
     self.cursor.execute("""INSERT INTO klusters (version, name, pc1, pc2, pc3, pc4, created_at) VALUES (%s,%s,%s,%s,%s,%s, NOW())""",(kluster["version"], kluster["name"], kluster["pc1"], kluster["pc2"], kluster["pc3"], kluster["pc4"]))
     self.mysql.commit()
 
 ## LOADING METHODS
 
-  def load_training(self, droppable_columns=[]):
-    raw_df = pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
-    return self.normalize(raw_df, droppable_columns)
+  def load_training(self):
+    return pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
 
   def current_pca_version(self):
     return "00"
@@ -54,21 +53,10 @@ class PlaylistTraining:
     for cluster in clusters:
       self.kluster_to_db(cluster)
 
-  def normalize(self, df, droppable_columns = []):
-    integer_df = df.drop(droppable_columns, axis=1)
-    string_df = df[droppable_columns]
-    denominators = integer_df.max() - integer_df.min()
-    zeroes = [x for x in denominators if x == 0]
-    if len(zeroes) > 0:
-      normalized_df = integer_df
-    else:
-      normalized_df = (integer_df - integer_df.mean()) / (integer_df.max() - integer_df.min())
-    return pd.concat([normalized_df, string_df], axis=1)
-
 ## TRAINING METHODS
 
-  def create_simple_training_set(self, droppable_columns = ["mood"]):
-    df = self.load_training(droppable_columns)
+  def create_simple_training_set(self, droppable_columns = ["mood", "id"]):
+    df = self.load_training()
     training_pca = self.calculate_pcs(df, droppable_columns)
     self.save_current_pca(training_pca)
     pc_version = self.current_pca_version()
@@ -78,6 +66,7 @@ class PlaylistTraining:
       cluster["name"] = mood
       mood_df = df[df["mood"] == mood]
       clean_mood_df = mood_df.drop(droppable_columns, axis=1)
+      print(clean_mood_df)
       transformed_df = pd.DataFrame(training_pca.transform(clean_mood_df))
       for column in transformed_df:
         coords = sum(transformed_df[column]) / len(transformed_df[column])
