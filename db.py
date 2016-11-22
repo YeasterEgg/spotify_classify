@@ -20,10 +20,16 @@
 # CREATE TABLE pcs (
 #   id INT NOT NULL AUTO_INCREMENT,
 #   variance DECIMAL(12,8) NULL,
-#   param VARCHAR(45) NOT NULL,
-#   ev DECIMAL(12,8) NULL,
-#   params VARCHAR(50),
 #   version INT,
+#   created_at TIMESTAMP NULL,
+#   PRIMARY KEY (id)
+#   );
+
+# CREATE TABLE evs (
+#   id INT NOT NULL AUTO_INCREMENT,
+#   version INT NOT NULL,
+#   param VARCHAR(45) NOT NULL,
+#   coefficient DECIMAL(12,8) NULL,
 #   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)
 #   );
@@ -35,7 +41,7 @@
 #   pc2 DECIMAL(12,8) NULL,
 #   pc3 DECIMAL(12,8) NULL,
 #   pc4 DECIMAL(12,8) NULL,
-#   version INT,
+#   pc_version INT,
 #   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id)
 #   );

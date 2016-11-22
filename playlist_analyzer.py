@@ -7,9 +7,11 @@ class PlaylistAnalyzer:
 ## PARSING METHODS
 
   def parse_playlist(self, playlist):
+    tracks = []
     for key, value in playlist["songlist"].items():
-      self.parse_track(playlist, value)
-    return True
+      track = self.parse_track(playlist, value)
+      tracks.append(track)
+    return tracks
 
   def parse_track(self, playlist, track):
     parsed = {}
@@ -28,13 +30,22 @@ class PlaylistAnalyzer:
     parsed["loudness"]         = track["features"]["loudness"]
     parsed["count"]            = 0
     self.track_to_db(parsed)
+    return parsed
 
 ## LOADING METHODS
 
   def load_tracks(self):
     dirty_df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
-    print(dirty_df)
     return self.normalize(dirty_df)
+
+  def last_version(self, variable):
+    cursor = self.mysql.cursor()
+    cursor.execute("SELECT MAX(version) FROM {} AS version".format(variable))
+    version = cursor.fetchone()[0]
+    if version is not None:
+      return version
+    else:
+      return 0
 
 ## STORING METHODS
 

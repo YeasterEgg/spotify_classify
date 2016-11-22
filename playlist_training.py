@@ -14,13 +14,16 @@ class PlaylistTraining:
 
   def pc_to_db(self, pc):
     cursor = self.mysql.cursor()
+    cursor.execute("""INSERT INTO pcs (version, variance, created_at) VALUES (%s,%s, NOW())""",(pc["ver"], pc["var"]))
+    pc_id = cursor.lastrowid
     for key, value in pc['ev'].items():
-      cursor.execute("""INSERT INTO pcs (version, param, ev, variance, created_at) VALUES (%s,%s,%s,%s, NOW())""",(pc["ver"], key, value, pc["var"]))
+      cursor.execute("""INSERT INTO evs (pc_id, param, coefficient, created_at) VALUES (%s,%s,%s, NOW())""",(pc_id, key, value))
     self.mysql.commit()
+    return pc_id
 
   def kluster_to_db(self, kluster):
     cursor = self.mysql.cursor()
-    cursor.execute("""INSERT INTO klusters (version, name, pc1, pc2, pc3, pc4, created_at) VALUES (%s,%s,%s,%s,%s,%s, NOW())""",(kluster["ver"], kluster["name"], kluster["pc1"], kluster["pc2"], kluster["pc3"], kluster["pc4"]))
+    cursor.execute("""INSERT INTO klusters (version, name, pc1, pc2, pc3, pc4, created_at) VALUES (%s,%s,%s,%s,%s,%s, NOW())""",(kluster["version"], kluster["name"], kluster["pc1"], kluster["pc2"], kluster["pc3"], kluster["pc4"]))
     self.mysql.commit()
 
 ## LOADING METHODS
@@ -66,24 +69,28 @@ class PlaylistTraining:
     return pca.fit(df.drop(droppable_columns, axis=1))
 
   def store_klusters(self,clusters):
-    version = self.last_version("klusters")
     for cluster in clusters:
-      cluster["ver"] = version
       self.kluster_to_db(cluster)
 
   def store_pcs(self, df, pcs):
     variances = pcs.explained_variance_ratio_
     columns = df.columns
-    pc_version = self.last_version("pcs")
+    pc_version = int(self.last_version("pcs")) + 1
+    ids = {}
     for idx, component in enumerate(pcs.components_):
       pc = {'ver': pc_version, 'var': variances[idx], 'ev': dict(zip(columns, component))}
-      self.pc_to_db(pc)
+      pc_id = self.pc_to_db(pc)
+      ids["pc" + str(idx + 1)] = pc_id
+    return {"pc_ids": ids, "pc_version":  pc_version}
 
 ## TRAINING METHODS
 
   def create_simple_training_set(self, droppable_columns = ["mood"]):
     df = self.load_training(droppable_columns)
     training_pcs = self.calculate_pcs(df, droppable_columns)
+    pc_variables = self.store_pcs(df, training_pcs)
+    pc_ids = pc_variables["pc_ids"]
+    pc_version = pc_variables["pc_version"]
     clusters = []
     for mood in self.available_moods():
       cluster = {}
@@ -95,9 +102,9 @@ class PlaylistTraining:
         coords = sum(transformed_df[column]) / len(transformed_df[column])
         variable = "pc" + str(column + 1)
         cluster[variable] = coords
+      cluster["version"] = pc_version
       clusters.append(cluster)
     self.store_klusters(clusters)
-    self.store_pcs(df, training_pcs)
 
   def clean_outliers(self, max_loops = 0):
     pass
