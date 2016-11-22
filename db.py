@@ -17,32 +17,6 @@
 #   PRIMARY KEY (id, spotify_id)
 #   );
 
-# CREATE TABLE pcs (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   variance DECIMAL(12,8) NULL,
-#   version INT,
-#   rank INT,
-#   created_at TIMESTAMP NULL,
-#   PRIMARY KEY (id)
-#   );
-
-# CREATE TABLE normalization_params (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   version INT,
-#   mean INT,
-#   created_at TIMESTAMP NULL,
-#   PRIMARY KEY (id)
-#   );
-
-# CREATE TABLE evs (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   version INT NOT NULL,
-#   param VARCHAR(45) NOT NULL,
-#   coefficient DECIMAL(12,8) NULL,
-#   created_at TIMESTAMP NULL,
-#   PRIMARY KEY (id)
-#   );
-
 # CREATE TABLE klusters (
 #   id INT NOT NULL AUTO_INCREMENT,
 #   name VARCHAR(45) NOT NULL,

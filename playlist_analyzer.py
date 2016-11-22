@@ -1,4 +1,7 @@
+from sklearn.decomposition import PCA
+from sklearn.externals import joblib
 import pandas as pd
+import os
 
 class PlaylistAnalyzer:
   def __init__(self, mysql):
@@ -35,40 +38,11 @@ class PlaylistAnalyzer:
 
 ## LOADING METHODS
 
-  def load_tracks(self):
-    dirty_df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id", "mood"]).drop("created_at", 1).drop("training", 1)
-    return self.normalize(dirty_df)
+  def load_training(self):
+    return pd.read_sql_query("SELECT * FROM tracks WHERE training = TRUE", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
 
   def last_version(self):
-    self.cursor.execute("SELECT MAX(version) FROM pcs AS version")
-    version = self.cursor.fetchone()[0]
-    if version is not None:
-      return version
-    else:
-      return 0
-
-  def load_pcs(self):
-    self.cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name LIKE 'pcs'")
-    columns = [column[0] for column in self.cursor.fetchall()]
-    last_version = self.last_version()
-    self.cursor.execute("SELECT * FROM pcs WHERE version = '{}'".format(last_version))
-    raw_pcs = self.cursor.fetchall()
-    pcs = []
-    for pc in raw_pcs:
-      pc_hash = {}
-      for idx, variable in enumerate(pc):
-        pc_hash[columns[idx]] = variable
-      pcs.append(pc_hash)
-    return pcs
-
-  def load_evs(self, pc_id):
-    self.cursor.execute("SELECT param, coefficient FROM evs WHERE pc_id = {}".format(pc_id))
-    raw_evs = self.cursor.fetchall()
-    evs = []
-    for ev in raw_evs:
-      evs.append({"param":ev[0], "value": float(ev[1])})
-    return evs
-
+    return 0
 
 ## STORING METHODS
 
@@ -82,20 +56,9 @@ class PlaylistAnalyzer:
 ## ANALYSIS METHODS
 
   def pca_playlist(self, playlist):
-    pcs = self.load_pcs()
-    for track in playlist:
-      self.rotate_track(track, pcs)
-
-  def rotate_track(self,track, pcs):
-    rotated_track = {"track_id": track["spotify_id"]}
-    for pc in pcs:
-      pc_rank = "pc"+ str(pc['rank'])
-      evs = self.load_evs(pc["id"])
-      pc_value = 0
-      for ev in evs:
-        pc_value += track[ev["param"]] * ev["value"]
-      rotated_track[pc_rank] = pc_value
-    print(rotated_track)
-    return rotated_track
-
+    current = os.getcwd()
+    filename = os.path.join(current, "pca_model", "pca.pkl")
+    with open(filename, 'rb') as fo:
+      pca = joblib.load(fo)
+    return pca
 
