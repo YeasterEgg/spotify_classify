@@ -34,9 +34,8 @@ class PlaylistTraining:
     return "00"
 
   def available_moods(self):
-    cursor = self.mysql.cursor()
-    cursor.execute("SELECT DISTINCT mood FROM tracks")
-    moods = cursor.fetchall()
+    self.cursor.execute("SELECT DISTINCT mood FROM tracks")
+    moods = self.cursor.fetchall()
     return [i[0] for i in moods]
 
 ## ANALYTIC METHODS
@@ -66,8 +65,8 @@ class PlaylistTraining:
       cluster["name"] = mood
       mood_df = df[df["mood"] == mood]
       clean_mood_df = mood_df.drop(droppable_columns, axis=1)
-      print(clean_mood_df)
       transformed_df = pd.DataFrame(training_pca.transform(clean_mood_df))
+      print(transformed_df)
       for column in transformed_df:
         coords = sum(transformed_df[column]) / len(transformed_df[column])
         variable = "pc" + str(column + 1)

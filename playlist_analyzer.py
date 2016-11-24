@@ -41,32 +41,52 @@ class PlaylistAnalyzer:
   def last_version(self):
     return 0
 
-  def load_pca(self):
+  def load_pca(self, version):
     current = os.getcwd()
     filename = os.path.join(current, "pca_model", "pca.pkl")
     with open(filename, 'rb') as fo:
       pca = joblib.load(fo)
     return pca
 
+  def load_klusters(self, version):
+    self.cursor.execute("SELECT name, pc1, pc2, pc3, pc4 FROM klusters WHERE version = {}".format(version))
+    klusters_raw = self.cursor.fetchall()
+    klusters = [{"mood": i[1][0], "pcs": list(i[1][1:])} for i in enumerate(klusters_raw)]
+    return klusters
+
 ## STORING METHODS
 
   def track_to_db(self, track):
     if self.cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(track["spotify_id"], track["training"])):
-      print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
+      # print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
+      pass
     else:
       self.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
       self.mysql.commit()
 
 ## ANALYSIS METHODS
 
+  def find_closer(self, klusters, pca, track):
+    distances = []
+    for kluster in klusters:
+      for i in (0,1,2,3):
+        print(kluster["pcs"])
+        print(list(track))
+    return 1
+
   def transform_df(self, playlist, pca):
     df = pd.DataFrame(playlist).drop(["mood", "training", "count"], axis=1)
     clean_df = df.set_index("spotify_id")
     transformed_df = pca.transform(clean_df)
-    return pd.DataFrame(transformed_df)
+    return pd.DataFrame(transformed_df, index=clean_df.index)
 
   def pca_playlist(self, playlist):
-    pca = self.load_pca()
+    version = self.last_version()
+    pca = self.load_pca(version)
+    klusters = self.load_klusters(version)
     transformed_df = self.transform_df(playlist, pca)
-    print(transformed_df)
-    return 'ciao'
+    klusterized = []
+    for idx, row in transformed_df.iterrows():
+      kluster = self.find_closer(klusters, pca, row)
+      klusterized.append({"track": row, "kluster": kluster})
+    return {"ciao": "ciao"}
