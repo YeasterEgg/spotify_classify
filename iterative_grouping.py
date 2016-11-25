@@ -7,35 +7,81 @@ import os
 import MySQLdb
 import db
 
-db_settings = db.DatabaseInterface().return_options()
-mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 
 class IterativeGrouping:
 
-  def __init__(self, data_frame = None, group_names = ["sad","happy","energy"], group_column_name = "mood", final_variables_number = 4):
-    if data_frame:
-      self.df = data_frame
-    else:
-      self.df = pd.read_sql_query("SELECT * FROM tracks", con = mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
+  DB_SETTINGS = db.DatabaseInterface().return_options()
+
+  def __init__(self,
+               data_frame = None,
+               mysql = None,
+               group_names = None,
+               group_column_name = None,
+               final_variables_number = None,
+               start_with_pca = False,
+               training_set_size = None):
+    self.df = data_frame
+    self.mysql = mysql
     self.gn = group_names
     self.gcn = group_column_name
     self.fvn = final_variables_number
+    self.swp = start_with_pca
+    self.tss = training_set_size
+    self.coefficients = False
+    self.prepare_df()
+
+  def load_test(self):
+    self.mysql = MySQLdb.connect(user = self.DB_SETTINGS['user'], db = self.DB_SETTINGS['name'], host = self.DB_SETTINGS['host'])
+    self.df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
+    self.gn = ["sad","happy","energy"]
+    self.gcn = "mood"
+    self.fvn = 4
+    self.swp = False
+    self.tss = 0.1
+    self.prepare_df()
+    return self
+
+  def perform(self):
+    if not self.coefficients:
+      if swp:
+        self.coefficients = self.generate_first_coefficients(self.variables)
+      else:
+        # HERE TO BE USED A ROTATED SYSTEM VIA PCA
+        self.coefficients = self.generate_first_coefficients(self.variables)
+    else:
+      self.slightly_move(self.coefficients)
+    for variable in self.variables:
+      self.df[variable].update(self.df[variable] * self.coefficients[variable])
+    self.clusters = self.clusterize(self.df, self.variables)
 
   def perform_after_pca(self):
     rotated_df = self.pca_rotation(self.df, self.pc_number, [self.gcn])
 
-  def first_iteration(self):
+  def generate_first_coefficients(self, variables):
     coefficients = {}
-    for column in self.df.drop([self.gcn, "id"], axis=1).columns:
-      random_coefficient = np.random.choice([1,-1]) * np.random.random()
-      coefficients[column] = random_coefficient
-      print(random_coefficient)
-      self.df[column].update(self.df[column] * random_coefficient)
-    print(self.df)
+    for variable in variables:
+      coefficient = np.random.choice([1,-1]) * np.random.random()
+      coefficients[variable] = coefficient
+    return coefficients
 
-  def pca_rotation(self, df, pc_number, droppable_columns = []):
-    pca = PCA(n_components=pc_number)
-    return pca.fit(df.drop(droppable_columns, axis=1))
+  def prepare_df(self):
+    if self.df is None:
+      self.variables = []
+      self.training_df = None
+    else:
+      self.variables = self.df.drop([self.gcn, "id"], axis=1).columns
+      dropped_amount = int(self.tss * self.df.shape[0])
+      dropped_indices = np.random.choice(self.df.index, dropped_amount, replace=False)
+      self.training_df = self.df[self.df.index.isin(dropped_indices)]
+      self.df = self.df.drop(dropped_indices)
+
+  def slightly_move(self, coefficients):
+    return coefficients
+
+  def clusterize(self, df, variables):
+    cluster_number = len(variables)
+    kmeans = KMeans(init='k-means++', n_clusters=n_kl, n_init=10)
+    return kmeans.fit(df)
 
 ## LOADING METHODS
 
@@ -46,14 +92,20 @@ class IterativeGrouping:
 
 ## ANALYTIC METHODS
 
-  def klusterize(self, df, n_kl = 3):
-    kmeans = KMeans(init='k-means++', n_clusters=n_kl, n_init=10)
-    return kmeans.fit(df)
-
-
   def store_klusters(self,clusters):
     for cluster in clusters:
       self.kluster_to_db(cluster)
+
+  def normalize(self, df, droppable_columns = []):
+    integer_df = df.drop(droppable_columns, axis=1)
+    string_df = df[droppable_columns]
+    denominators = integer_df.max() - integer_df.min()
+    zeroes = [x for x in denominators if x == 0]
+    if len(zeroes) > 0:
+      normalized_df = integer_df
+    else:
+      normalized_df = (integer_df - integer_df.mean()) / (integer_df.max() - integer_df.min())
+    return pd.concat([normalized_df, string_df], axis=1)
 
 ## TRAINING METHODS
 
