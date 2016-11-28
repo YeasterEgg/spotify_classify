@@ -32,7 +32,7 @@ class IterativeGrouping:
 
   def load_test(self):
     self.mysql = MySQLdb.connect(user = self.DB_SETTINGS['user'], db = self.DB_SETTINGS['name'], host = self.DB_SETTINGS['host'])
-    self.df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1)
+    self.df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1).drop("id", 1)
     self.gn = ["sad","happy","energy"]
     self.gcn = "mood"
     self.fvn = 4
@@ -43,7 +43,7 @@ class IterativeGrouping:
 
   def perform(self):
     if not self.coefficients:
-      if swp:
+      if self.swp:
         self.coefficients = self.generate_first_coefficients(self.variables)
       else:
         # HERE TO BE USED A ROTATED SYSTEM VIA PCA
@@ -52,7 +52,7 @@ class IterativeGrouping:
       self.slightly_move(self.coefficients)
     for variable in self.variables:
       self.df[variable].update(self.df[variable] * self.coefficients[variable])
-    self.clusters = self.clusterize(self.df, self.variables)
+    self.clusters = self.clusterize(self.df, self.gn, [self.gcn])
 
   def perform_after_pca(self):
     rotated_df = self.pca_rotation(self.df, self.pc_number, [self.gcn])
@@ -69,7 +69,7 @@ class IterativeGrouping:
       self.variables = []
       self.training_df = None
     else:
-      self.variables = self.df.drop([self.gcn, "id"], axis=1).columns
+      self.variables = self.df.drop([self.gcn], axis=1).columns
       dropped_amount = int(self.tss * self.df.shape[0])
       dropped_indices = np.random.choice(self.df.index, dropped_amount, replace=False)
       self.training_df = self.df[self.df.index.isin(dropped_indices)]
@@ -78,23 +78,12 @@ class IterativeGrouping:
   def slightly_move(self, coefficients):
     return coefficients
 
-  def clusterize(self, df, variables):
-    cluster_number = len(variables)
-    kmeans = KMeans(init='k-means++', n_clusters=n_kl, n_init=10)
-    return kmeans.fit(df)
-
-## LOADING METHODS
-
-  def available_moods(self):
-    self.cursor.execute("SELECT DISTINCT mood FROM tracks")
-    moods = self.cursor.fetchall()
-    return [i[0] for i in moods]
+  def clusterize(self, df, groups, droppable_columns = []):
+    cluster_number = len(groups)
+    kmeans = KMeans(init='k-means++', n_clusters=cluster_number, n_init=10)
+    return kmeans.fit(df.drop(droppable_columns, axis=1))
 
 ## ANALYTIC METHODS
-
-  def store_klusters(self,clusters):
-    for cluster in clusters:
-      self.kluster_to_db(cluster)
 
   def normalize(self, df, droppable_columns = []):
     integer_df = df.drop(droppable_columns, axis=1)
