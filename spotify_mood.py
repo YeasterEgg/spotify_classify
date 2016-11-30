@@ -13,7 +13,7 @@ mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], ho
 analyzer = pa.PlaylistAnalyzer(mysql)
 training = pt.PlaylistTraining(mysql)
 
-VERSION = "v0.1"
+VERSION = "v0.2"
 def versionate_route(route):
   return ('/' + VERSION + '/' + route)
 

@@ -1,14 +1,24 @@
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
+from sklearn.linear_model import LinearRegression
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 import MySQLdb
 import db
 
+## MY FIRST EXPERIMENT WITH MACHINE LEARNING
+## How it should it work:
+## Receive a song, evaluate it and decide which mood it evocates.
+## I want to use Machine Learning to create a reliable rotation of the data I can retrieve from Spotify.
+## I need to start from the axiom that these informations will be enough to safely infer the mood of a song.
 
-class IterativeGrouping:
+## Since there are plenty of "moody" playlists, I'll use them as training set, with a random sample of 10% as
+## testing set.
+
+class MachineLearning:
 
   DB_SETTINGS = db.DatabaseInterface().return_options()
 
@@ -41,12 +51,21 @@ class IterativeGrouping:
     self.prepare_df()
     return self
 
+  def draw_corr_matrix(self):
+    plt.imshow(self.dummy_df.corr(), cmap='hot', interpolation='nearest')
+    plt.savefig('./plots/cor_matrix.png', bbox_inches='tight')
+    plt.close()
+
+  def draw_scatter_matrix(self):
+    pd.tools.plotting.scatter_matrix(self.df)
+    plt.savefig('./plots/scatter_matrix.png', bbox_inches='tight')
+    plt.close()
+
   def perform(self):
     if not self.coefficients:
       if self.swp:
         self.coefficients = self.generate_first_coefficients(self.variables)
       else:
-        # HERE TO BE USED A ROTATED SYSTEM VIA PCA
         self.coefficients = self.generate_first_coefficients(self.variables)
     else:
       self.slightly_move(self.coefficients)
@@ -74,6 +93,7 @@ class IterativeGrouping:
       dropped_indices = np.random.choice(self.df.index, dropped_amount, replace=False)
       self.training_df = self.df[self.df.index.isin(dropped_indices)]
       self.df = self.df.drop(dropped_indices)
+      self.dummy_df = pd.get_dummies(self.df)
 
   def slightly_move(self, coefficients):
     return coefficients
@@ -96,28 +116,4 @@ class IterativeGrouping:
       normalized_df = (integer_df - integer_df.mean()) / (integer_df.max() - integer_df.min())
     return pd.concat([normalized_df, string_df], axis=1)
 
-## TRAINING METHODS
-
-  def create_simple_training_set(self, droppable_columns = ["mood", "id"]):
-    df = self.load_training()
-    training_pca = self.calculate_pcs(df, droppable_columns)
-    self.save_current_pca(training_pca)
-    pc_version = self.current_pca_version()
-    clusters = []
-    for mood in self.available_moods():
-      cluster = {}
-      cluster["name"] = mood
-      mood_df = df[df["mood"] == mood]
-      clean_mood_df = mood_df.drop(droppable_columns, axis=1)
-      transformed_df = pd.DataFrame(training_pca.transform(clean_mood_df))
-      print(transformed_df)
-      for column in transformed_df:
-        coords = sum(transformed_df[column]) / len(transformed_df[column])
-        variable = "pc" + str(column + 1)
-        cluster[variable] = coords
-      cluster["version"] = pc_version
-      clusters.append(cluster)
-    self.store_klusters(clusters)
-
-  def clean_outliers(self, max_loops = 0):
-    pass
+test = MachineLearning().load_test()
