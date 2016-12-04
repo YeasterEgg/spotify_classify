@@ -41,34 +41,18 @@ class MachineLearning:
     self.prepare_df()
 
   def load_test(self):
+    self.coefficients = self.generate_first_coefficients(self.variables)
     self.mysql = MySQLdb.connect(user = self.DB_SETTINGS['user'], db = self.DB_SETTINGS['name'], host = self.DB_SETTINGS['host'])
     self.df = pd.read_sql_query("SELECT * FROM tracks", con = self.mysql, index_col = ["spotify_id"]).drop("created_at", 1).drop("training", 1).drop("id", 1)
     self.gn = ["sad","happy","energy"]
     self.gcn = "mood"
     self.fvn = 4
     self.swp = False
-    self.tss = 0.1
+    self.tss = 0.2
     self.prepare_df()
     return self
 
-  def draw_corr_matrix(self):
-    plt.imshow(self.dummy_df.corr(), cmap='hot', interpolation='nearest')
-    plt.savefig('./plots/cor_matrix.png', bbox_inches='tight')
-    plt.close()
-
-  def draw_scatter_matrix(self):
-    pd.tools.plotting.scatter_matrix(self.df)
-    plt.savefig('./plots/scatter_matrix.png', bbox_inches='tight')
-    plt.close()
-
   def perform(self):
-    if not self.coefficients:
-      if self.swp:
-        self.coefficients = self.generate_first_coefficients(self.variables)
-      else:
-        self.coefficients = self.generate_first_coefficients(self.variables)
-    else:
-      self.slightly_move(self.coefficients)
     for variable in self.variables:
       self.df[variable].update(self.df[variable] * self.coefficients[variable])
     self.clusters = self.clusterize(self.df, self.gn, [self.gcn])
@@ -95,9 +79,6 @@ class MachineLearning:
       self.df = self.df.drop(dropped_indices)
       self.dummy_df = pd.get_dummies(self.df)
 
-  def slightly_move(self, coefficients):
-    return coefficients
-
   def clusterize(self, df, groups, droppable_columns = []):
     cluster_number = len(groups)
     kmeans = KMeans(init='k-means++', n_clusters=cluster_number, n_init=10)
@@ -115,5 +96,17 @@ class MachineLearning:
     else:
       normalized_df = (integer_df - integer_df.mean()) / (integer_df.max() - integer_df.min())
     return pd.concat([normalized_df, string_df], axis=1)
+
+## PLOTTING METHODS
+
+  def draw_corr_matrix(self):
+    plt.imshow(self.dummy_df.corr(), cmap='hot', interpolation='nearest')
+    plt.savefig('./plots/cor_matrix.png', bbox_inches='tight')
+    plt.close()
+
+  def draw_scatter_matrix(self):
+    pd.tools.plotting.scatter_matrix(self.df)
+    plt.savefig('./plots/scatter_matrix.png', bbox_inches='tight')
+    plt.close()
 
 test = MachineLearning().load_test()
