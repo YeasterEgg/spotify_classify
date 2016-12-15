@@ -1,22 +1,20 @@
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.externals import joblib
-from sklearn.linear_model import LinearRegression
+from sklearn import cross_validation
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 import pandas as pd
+from pandas.tools.plotting import scatter_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import MySQLdb
 import db
-
-## MY FIRST EXPERIMENT WITH MACHINE LEARNING
-## How it should it work:
-## Receive a song, evaluate it and decide which mood it evocates.
-## I want to use Machine Learning to create a reliable rotation of the data I can retrieve from Spotify.
-## I need to start from the axiom that these informations will be enough to safely infer the mood of a song.
-
-## Since there are plenty of "moody" playlists, I'll use them as training set, with a random sample of 10% as
-## testing set.
 
 class MachineLearning:
 
@@ -52,14 +50,6 @@ class MachineLearning:
     self.prepare_df()
     return self
 
-  def perform(self):
-    for variable in self.variables:
-      self.df[variable].update(self.df[variable] * self.coefficients[variable])
-    self.clusters = self.clusterize(self.df, self.gn, [self.gcn])
-
-  def perform_after_pca(self):
-    rotated_df = self.pca_rotation(self.df, self.pc_number, [self.gcn])
-
   def generate_first_coefficients(self, variables):
     coefficients = {}
     for variable in variables:
@@ -79,24 +69,6 @@ class MachineLearning:
       self.training_df = self.df.drop(dropped_indices)
       self.dummy_testing_df = pd.get_dummies(self.testing_df)
       self.dummy_training_df = pd.get_dummies(self.training_df)
-
-  def clusterize(self, df, groups, droppable_columns = []):
-    cluster_number = len(groups)
-    kmeans = KMeans(init='k-means++', n_clusters=cluster_number, n_init=10)
-    return kmeans.fit(df.drop(droppable_columns, axis=1))
-
-## ANALYTIC METHODS
-
-  def normalize(self, df, droppable_columns = []):
-    integer_df = df.drop(droppable_columns, axis=1)
-    string_df = df[droppable_columns]
-    denominators = integer_df.max() - integer_df.min()
-    zeroes = [x for x in denominators if x == 0]
-    if len(zeroes) > 0:
-      normalized_df = integer_df
-    else:
-      normalized_df = (integer_df - integer_df.mean()) / (integer_df.max() - integer_df.min())
-    return pd.concat([normalized_df, string_df], axis=1)
 
 ## PLOTTING METHODS
 
