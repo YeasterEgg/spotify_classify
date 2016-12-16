@@ -3,7 +3,6 @@ import json
 import MySQLdb
 
 import playlist_analyzer as pa
-import playlist_training as pt
 import authorizer as auth
 import db
 
@@ -11,7 +10,6 @@ app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
 mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 analyzer = pa.PlaylistAnalyzer(mysql)
-training = pt.PlaylistTraining(mysql)
 
 VERSION = "v0.2"
 def versionate_route(route):
@@ -23,7 +21,7 @@ def version():
 
 @app.route(versionate_route('test'), methods=['GET'])
 def test():
-  return "Tell me, how could i know?"
+  return "Well maybe -working- test is a bit of an overstatement..."
 
 @app.errorhandler(404)
 def not_found(error):
@@ -55,8 +53,8 @@ def playlist_post():
   playlist = body['playlist']
   result = analyzer.parse_playlist(playlist)
   if result:
-    clusterized = analyzer.pca_playlist(result)
-    return jsonify({"result": "OK", "clusters": clusterized}), 201
+    assigned_playlist = analyzer.assign_playlist(result)
+    return jsonify({"result": "OK", "clusters": assigned_playlist}), 201
   else:
     return jsonify("NOPE"), 500
 

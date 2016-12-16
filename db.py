@@ -17,18 +17,6 @@
 #   PRIMARY KEY (id, spotify_id)
 #   );
 
-# CREATE TABLE klusters (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   name VARCHAR(45) NOT NULL,
-#   pc1 DECIMAL(16,8) NULL,
-#   pc2 DECIMAL(16,8) NULL,
-#   pc3 DECIMAL(16,8) NULL,
-#   pc4 DECIMAL(16,8) NULL,
-#   version INT,
-#   created_at TIMESTAMP NULL,
-#   PRIMARY KEY (id)
-#   );
-
 import os
 
 class DatabaseInterface:

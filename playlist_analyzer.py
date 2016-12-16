@@ -1,5 +1,3 @@
-from sklearn.decomposition import PCA
-from sklearn.externals import joblib
 import pandas as pd
 import os
 
@@ -13,7 +11,9 @@ class PlaylistAnalyzer:
   def parse_playlist(self, playlist):
     tracks = []
     for key, value in playlist["songlist"].items():
-      track = self.parse_track(playlist, value)
+      self.cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(value["spotifyId"], value["training"]))
+      track = self.cursor.fetchone() or self.parse_track(playlist, value)
+      print(track)
       tracks.append(track)
     return tracks
 
@@ -38,9 +38,6 @@ class PlaylistAnalyzer:
 
 ## LOADING METHODS
 
-  def last_version(self):
-    return 0
-
   def load_pca(self, version):
     current = os.getcwd()
     filename = os.path.join(current, "pca_model", "pca.pkl")
@@ -48,21 +45,11 @@ class PlaylistAnalyzer:
       pca = joblib.load(fo)
     return pca
 
-  def load_klusters(self, version):
-    self.cursor.execute("SELECT name, pc1, pc2, pc3, pc4 FROM klusters WHERE version = {}".format(version))
-    klusters_raw = self.cursor.fetchall()
-    klusters = [{"mood": i[1][0], "pcs": list(i[1][1:])} for i in enumerate(klusters_raw)]
-    return klusters
-
 ## STORING METHODS
 
   def track_to_db(self, track):
-    if self.cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(track["spotify_id"], track["training"])):
-      # print("Track {} already known. Should increase its count.".format(track["spotify_id"]))
-      pass
-    else:
-      self.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
-      self.mysql.commit()
+    self.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
+    self.mysql.commit()
 
 ## ANALYSIS METHODS
 
