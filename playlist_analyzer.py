@@ -1,11 +1,12 @@
 import pandas as pd
 import os
+import MySQLdb
 
 ## PARSING METHODS
 
 def analyze_playlist(mysql, playlist):
   tracks = []
-  cursor = mysql.cursor()
+  cursor = mysql.cursor(MySQLdb.cursors.DictCursor)
   for key, value in playlist["songlist"].items():
     parsed_track = parse_track(playlist, value)
     cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(value["spotifyId"], playlist["training"]))
@@ -13,7 +14,7 @@ def analyze_playlist(mysql, playlist):
       parsed_track = cursor.fetchone()
     else:
       parsed_track = parse_track(playlist, value)
-      track_to_db(cursor, mysql, parsed_track)
+      track_to_db(mysql, parsed_track)
     tracks.append(parsed_track)
   return tracks
 
@@ -35,19 +36,18 @@ def parse_track(playlist, track):
   parsed["count"]            = 0
   return parsed
 
-## LOADING METHODS
-
-def load_parameters():
-  return 'ciao'
-
 ## STORING METHODS
 
-def track_to_db(cursor, mysql, track):
-  cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
+def track_to_db(mysql, track):
+  mysql.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
   mysql.commit()
 
 ## ANALYSIS METHODS
 
 def assign_playlist(playlist):
-  return playlist
+  results = {}
+  for track in playlist:
+    print(track)
+    results["spotify_id"] = track["spotify_id"]
+  return results
 
