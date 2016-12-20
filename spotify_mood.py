@@ -87,7 +87,7 @@ def playlist_post():
 # /SAFER ROUTE
 
 @app.route(versionate_route('reload_params'), methods=['GET'])
-def reload_params_post():
+def reload_params_get():
   if request.args.get('token') != auth.Authorizer.KEY:
     return jsonify({'error': "You are not authorized"}), 403
   mood_tuple = request.args.get('moods').split('_')
