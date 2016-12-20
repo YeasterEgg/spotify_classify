@@ -60,7 +60,7 @@ def playlist_post():
   parsed_playlist = pa.analyze_playlist(mysql, playlist)
   result = pa.predict_playlist(parsed_playlist)
   print(result)
-  if result.any():
+  if result:
     return jsonify({"result": "OK", "clusters": result}), 201
   else:
     return jsonify("NOPE"), 500

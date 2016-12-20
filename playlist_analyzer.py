@@ -52,7 +52,10 @@ def predict_playlist(playlist, moods = ("happy", "sad")):
   lda = load_model(filename)
   df = pd.DataFrame(playlist).drop("created_at", 1).drop("training", 1).drop("id", 1).drop("mood", 1).set_index("spotify_id")
   classification = lda.predict(df)
-  return classification
+  result = {}
+  for t, m in zip(list(df.index.values), list(classification)):
+    result[t] = m
+  return result
 
 def load_model(filename):
   current_path = os.getcwd()
