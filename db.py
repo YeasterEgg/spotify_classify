@@ -13,7 +13,6 @@
 #   loudness DECIMAL(12,8) NULL,
 #   acousticness DECIMAL(12,8) NULL,
 #   training BOOL NULL,
-#   created_at TIMESTAMP NULL,
 #   PRIMARY KEY (id, spotify_id)
 #   );
 

@@ -41,7 +41,7 @@ def parse_track(playlist, track):
 ## STORING METHODS
 
 def track_to_db(mysql, track):
-  mysql.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
+  mysql.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
   mysql.commit()
 
 ## ANALYSIS METHODS
@@ -50,7 +50,7 @@ def predict_playlist(playlist, moods = ("happy", "sad")):
   moods_tuple = tuple(sorted(moods))
   filename = "_".join(mood for mood in moods_tuple)
   lda = load_model(filename)
-  df = pd.DataFrame(playlist).drop("created_at", 1).drop("training", 1).drop("id", 1).drop("mood", 1).set_index("spotify_id")
+  df = pd.DataFrame(playlist).drop("training", 1).drop("id", 1).drop("mood", 1).set_index("spotify_id")
   classification = lda.predict(df)
   result = {}
   for t, m in zip(list(df.index.values), list(classification)):
