@@ -27,6 +27,12 @@ class DatabaseInterface:
       'password': None,
       'host': 'localhost'
     },
+    'production': {
+      'name': 'py_mood',
+      'user': 'root',
+      'password': os.getenv("DB_PASSWORD"),
+      'host': 'localhost'
+    },
   }
 
   def __init__(self, options = DEFAULT_SETTINGS):
