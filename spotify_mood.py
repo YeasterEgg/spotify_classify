@@ -10,7 +10,7 @@ import lda
 app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
 if db_settings['password']:
-  mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
+  mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'], password = db_settings['password'])
 else:
   mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 
