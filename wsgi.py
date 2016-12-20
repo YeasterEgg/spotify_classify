@@ -1,5 +1,5 @@
-from spotify_mood import application
+from spotify_mood import app
 
 if __name__ == "__main__":
-    application.run()
+    app.run()
 
