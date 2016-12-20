@@ -11,7 +11,7 @@ app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
 mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
 
-VERSION = "v0.2"
+VERSION = "v0.3"
 
 def versionate_route(route):
   return ('/' + VERSION + '/' + route)
@@ -23,11 +23,10 @@ def authorize(request, object_name):
     return jsonify({'error': 'Json missing necessary data.'}), 400
   if not 'token' in request.json:
     return jsonify({'error': 'Needs a Token!'}), 403
-  body = request.json
+  body = json.loads(request.json)
   token = body['token']['token']
   ts = body['token']['ts']
-  # authorized = auth.Authorizer(token, ts).correct()
-  authorized = True
+  authorized = auth.Authorizer(token, ts).correct()
   if not authorized:
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
   return {'success': True, 'body': body[object_name]}
@@ -59,28 +58,42 @@ def playlist_post():
     return auth
 
   parsed_playlist = pa.analyze_playlist(mysql, playlist)
-  result = pa.assign_playlist(parsed_playlist)
-  if result:
+  result = pa.predict_playlist(parsed_playlist)
+  print(result)
+  if result.any():
     return jsonify({"result": "OK", "clusters": result}), 201
   else:
     return jsonify("NOPE"), 500
 
-@app.route(versionate_route('reload_params'), methods=['POST'])
-def reload_params_post():
-  auth = authorize(request, "moods")
-  if auth['success']:
-    moods = auth['body']
-  else:
-    return auth
+# SAFER ROUTE
+# @app.route(versionate_route('reload_params'), methods=['POST'])
+# def reload_params_post():
+#   auth = authorize(request, "moods")
+#   if auth['success']:
+#     moods = auth['body']
+#   else:
+#     return auth
 
-  mood_tuple = tuple(moods)
+#   mood_tuple = tuple(moods)
+#   result = lda.calculate_parameters(mood_tuple)
+#   if result.any():
+#     matrix = {}
+#     for idx, line in enumerate(result):
+#       matrix[idx] = list(line)
+#     print(matrix)
+#     return jsonify({"result": "OK", "covariance_matrix": matrix}), 201
+#   else:
+#     return jsonify("NOPE"), 500
+# /SAFER ROUTE
+
+@app.route(versionate_route('reload_params'), methods=['GET'])
+def reload_params_post():
+  if request.args.get('token') != auth.Authorizer.KEY:
+    return jsonify({'error': "You are not authorized"}), 403
+  mood_tuple = request.args.get('moods').split('_')
   result = lda.calculate_parameters(mood_tuple)
-  if result.any():
-    matrix = {}
-    for idx, line in enumerate(result):
-      matrix[idx] = list(line)
-    print(matrix)
-    return jsonify({"result": "OK", "covariance_matrix": matrix}), 201
+  if result:
+    return jsonify({"result": "OK", "coefficients": result}), 201
   else:
     return jsonify("NOPE"), 500
 

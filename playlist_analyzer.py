@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 import MySQLdb
+from sklearn.externals import joblib
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 ## PARSING METHODS
 
@@ -44,10 +46,17 @@ def track_to_db(mysql, track):
 
 ## ANALYSIS METHODS
 
-def assign_playlist(playlist):
-  results = {}
-  for track in playlist:
-    print(track)
-    results["spotify_id"] = track["spotify_id"]
-  return results
+def predict_playlist(playlist, moods = ("happy", "sad")):
+  moods_tuple = tuple(sorted(moods))
+  filename = "_".join(mood for mood in moods_tuple)
+  lda = load_model(filename)
+  df = pd.DataFrame(playlist).drop("created_at", 1).drop("training", 1).drop("id", 1).drop("mood", 1).set_index("spotify_id")
+  classification = lda.predict(df)
+  return classification
 
+def load_model(filename):
+  current_path = os.getcwd()
+  file = os.path.join(current_path, "models", "{}.pkl".format(filename))
+  with open(file, 'rb') as fo:
+    pca = joblib.load(fo)
+  return pca
