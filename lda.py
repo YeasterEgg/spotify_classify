@@ -10,7 +10,7 @@ DB_SETTINGS = db.DatabaseInterface().return_options()
 
 def read_database(moods_tuple):
   mysql = MySQLdb.connect(user = DB_SETTINGS['user'], db = DB_SETTINGS['name'], host = DB_SETTINGS['host'])
-  return pd.read_sql_query("SELECT * FROM tracks WHERE mood in {} AND `training` = 1".format(moods_tuple), con = mysql, index_col = ["spotify_id"]).drop("training", 1).drop("id", 1)
+  return pd.read_sql_query("SELECT spotify_id, mood, training, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND `training` = 1".format(moods_tuple), con = mysql, index_col = ["spotify_id"])
 
 def calculate_parameters(moods = ("happy", "sad")):
   moods_tuple = tuple(sorted(moods))

@@ -11,9 +11,10 @@ def analyze_playlist(mysql, playlist):
   cursor = mysql.cursor(MySQLdb.cursors.DictCursor)
   for key, value in playlist["songlist"].items():
     parsed_track = parse_track(playlist, value)
-    cursor.execute("SELECT * FROM tracks WHERE spotify_id = '{}' AND training = {}".format(value["spotifyId"], playlist["training"]))
-    if cursor:
-      parsed_track = cursor.fetchone()
+    cursor.execute("SELECT spotify_id, mood, training, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE spotify_id = '{}' AND training = {}".format(value["spotifyId"], playlist["training"]))
+    result = cursor.fetchone()
+    if result is not None:
+      parsed_track = result
     else:
       parsed_track = parse_track(playlist, value)
       track_to_db(mysql, parsed_track)
@@ -35,13 +36,12 @@ def parse_track(playlist, track):
   parsed["tempo"]            = track["features"]["tempo"]
   parsed["speechiness"]      = track["features"]["speechiness"]
   parsed["loudness"]         = track["features"]["loudness"]
-  parsed["count"]            = 0
   return parsed
 
 ## STORING METHODS
 
 def track_to_db(mysql, track):
-  mysql.cursor.execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
+  mysql.cursor().execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
   mysql.commit()
 
 ## ANALYSIS METHODS
@@ -50,7 +50,8 @@ def predict_playlist(playlist, moods = ("happy", "sad")):
   moods_tuple = tuple(sorted(moods))
   filename = "_".join(mood for mood in moods_tuple)
   lda = load_model(filename)
-  df = pd.DataFrame(playlist).drop("training", 1).drop("id", 1).drop("mood", 1).set_index("spotify_id")
+  print(playlist)
+  df = pd.DataFrame(playlist).drop("mood", 1).set_index("spotify_id")
   classification = lda.predict(df)
   result = {}
   for t, m in zip(list(df.index.values), list(classification)):

@@ -21,3 +21,9 @@ The POST endpoint **/{version}/playlist** (authenticated via a SHA256 digested s
 #### Moods
 
 In this particular case, I've created it in order to classify the "mood" of a track.
+
+
+## TODOs
+
+- When a track is classified, it's mood should be added to the db, so that will be retrieved from it instead of being reclassified
+- Many many other things
