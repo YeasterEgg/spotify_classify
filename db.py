@@ -21,23 +21,13 @@ import os
 class DatabaseInterface:
 
   DEFAULT_SETTINGS = {
-    'development': {
       'name': 'py_mood',
       'user': 'root',
-      'password': None,
       'host': 'localhost'
-    },
-    'production': {
-      'name': 'py_mood',
-      'user': 'root',
-      'password': os.getenv("DB_PASSWORD"),
-      'host': 'localhost'
-    },
   }
 
   def __init__(self, options = DEFAULT_SETTINGS):
-    env = os.getenv("ENV", "development")
-    self.options = self.DEFAULT_SETTINGS[env]
+    self.options = self.DEFAULT_SETTINGS
 
   def return_options(self):
     return self.options
