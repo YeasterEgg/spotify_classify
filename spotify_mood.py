@@ -1,11 +1,17 @@
 from flask import Flask, jsonify, make_response, request
 import json
 import MySQLdb
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 import playlist_analyzer as pa
 import authorizer as auth
 import db
 import lda
+
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 app = Flask(__name__)
 db_settings = db.DatabaseInterface().return_options()
