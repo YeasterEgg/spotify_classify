@@ -1,4 +1,4 @@
-#!/Users/luca.mattiazzi/projects/yeasteregg/python/spotify-mood/spotify_classify/bin/python
+#!/var/www/spotify_classify/spotify_classify/bin/python
 
 import sys
 import getopt

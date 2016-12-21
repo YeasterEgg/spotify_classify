@@ -36,7 +36,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/luca.mattiazzi/projects/yeasteregg/python/spotify-mood/spotify_classify"
+set -gx VIRTUAL_ENV "/var/www/spotify_classify/spotify_classify"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

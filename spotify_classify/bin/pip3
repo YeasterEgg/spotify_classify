@@ -1,4 +1,4 @@
-#!/Users/luca.mattiazzi/projects/yeasteregg/python/spotify-mood/spotify_classify/bin/python3.5
+#!/var/www/spotify_classify/spotify_classify/bin/python3
 
 # -*- coding: utf-8 -*-
 import re
