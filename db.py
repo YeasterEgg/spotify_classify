@@ -17,17 +17,17 @@
 #   );
 
 import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+import MySQLdb
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 class DatabaseInterface:
 
-  DEFAULT_SETTINGS = {
-      'name': 'py_mood',
-      'user': 'root',
-      'host': 'localhost'
-  }
-
-  def __init__(self, options = DEFAULT_SETTINGS):
-    self.options = self.DEFAULT_SETTINGS
-
-  def return_options(self):
-    return self.options
+  def __init__(self):
+    if os.getenv("ENV")=="production":
+      self.mysql = MySQLdb.connect(user = "root", db = "py_mood", host = "localhost", passwd = os.getenv("DB_PASSWORD"))
+    else:
+      self.mysql = MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")

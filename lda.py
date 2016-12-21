@@ -6,10 +6,8 @@ from sklearn import model_selection
 from sklearn.externals import joblib
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-DB_SETTINGS = db.DatabaseInterface().return_options()
-
 def read_database(moods_tuple):
-  mysql = MySQLdb.connect(user = DB_SETTINGS['user'], db = DB_SETTINGS['name'], host = DB_SETTINGS['host'])
+  mysql = db.DatabaseInterface().mysql
   return pd.read_sql_query("SELECT spotify_id, mood, training, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND `training` = 1".format(moods_tuple), con = mysql, index_col = ["spotify_id"])
 
 def calculate_parameters(moods = ("happy", "sad")):

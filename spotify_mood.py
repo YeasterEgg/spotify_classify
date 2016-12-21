@@ -1,25 +1,16 @@
 from flask import Flask, jsonify, make_response, request
 import json
-import MySQLdb
-from os.path import join, dirname
-from dotenv import load_dotenv
 
 import playlist_analyzer as pa
 import authorizer as auth
+import MySQLdb
 import db
 import lda
 import os
 
-dotenv_path = join(dirname(__file__), '.env')
-load_dotenv(dotenv_path)
-
 app = Flask(__name__)
-db_settings = db.DatabaseInterface().return_options()
 
-if os.getenv("ENV")=="production":
-  mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'], passwd = os.getenv("DB_PASSWORD"))
-else:
-  mysql = MySQLdb.connect(user = db_settings['user'], db = db_settings['name'], host = db_settings['host'])
+mysql = db.DatabaseInterface().mysql
 
 VERSION = "v0.3"
 
