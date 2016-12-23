@@ -34,6 +34,10 @@ def authorize(request, object_name):
 def version():
   return VERSION
 
+@app.route('/', methods=['GET'])
+def root():
+  return "Someday here you will be able to classify a single song! Anyhow, <a href='/404'>HERE</a> you can see the API endpoints."
+
 @app.route(versionate_route('test'), methods=['GET'])
 def test():
   return "Well maybe -working- test is a bit of an overstatement..."
@@ -44,7 +48,8 @@ def not_found(error):
                                 'available_pages': {
                                   '/version': 'GET - API Version',
                                   '/{version}/test': 'GET - Working Test',
-                                  '/{version}/playlist': 'POST - Analyze Playlists'
+                                  '/{version}/reload_params?moods={mood1}_{mood2}': 'GET - Restart model creation',
+                                  '/{version}/playlist': 'POST - Analyze Playlists',
                                   }
                                 }), 404)
 
