@@ -1,16 +1,14 @@
 from flask import Flask, jsonify, make_response, request
 import json
 
-import playlist_analyzer as pa
-import authorizer as auth
+import mood as ml
+import config as cfg
 import MySQLdb
-import db
-import lda
 import os
 
 app = Flask(__name__)
 
-mysql = db.DatabaseInterface().mysql
+mysql = cfg.db.DatabaseInterface().mysql
 
 VERSION = "v0.3"
 
@@ -27,7 +25,7 @@ def authorize(request, object_name):
   body = json.loads(request.json)
   token = body['token']['token']
   ts = body['token']['ts']
-  authorized = auth.Authorizer(token, ts).correct()
+  authorized = cfg.auth.Authorizer(token, ts).correct()
   if not authorized:
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
   return {'success': True, 'body': body[object_name]}
@@ -57,7 +55,6 @@ def playlist_post():
     playlist = auth['body']
   else:
     return auth
-
   parsed_playlist = pa.analyze_playlist(mysql, playlist)
   result = pa.predict_playlist(parsed_playlist)
   print(result)
@@ -66,30 +63,9 @@ def playlist_post():
   else:
     return jsonify("NOPE"), 500
 
-# SAFER ROUTE
-# @app.route(versionate_route('reload_params'), methods=['POST'])
-# def reload_params_post():
-#   auth = authorize(request, "moods")
-#   if auth['success']:
-#     moods = auth['body']
-#   else:
-#     return auth
-
-#   mood_tuple = tuple(moods)
-#   result = lda.calculate_parameters(mood_tuple)
-#   if result.any():
-#     matrix = {}
-#     for idx, line in enumerate(result):
-#       matrix[idx] = list(line)
-#     print(matrix)
-#     return jsonify({"result": "OK", "covariance_matrix": matrix}), 201
-#   else:
-#     return jsonify("NOPE"), 500
-# /SAFER ROUTE
-
 @app.route(versionate_route('reload_params'), methods=['GET'])
 def reload_params_get():
-  if request.args.get('token') != auth.Authorizer.KEY:
+  if request.args.get('token') != cfg.auth.Authorizer.KEY:
     return jsonify({'error': "You are not authorized"}), 403
   mood_tuple = request.args.get('moods').split('_')
   result = lda.calculate_parameters(mood_tuple)
