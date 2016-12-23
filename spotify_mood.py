@@ -68,7 +68,7 @@ def reload_params_get():
   if request.args.get('token') != cfg.auth.Authorizer.KEY:
     return jsonify({'error': "You are not authorized"}), 403
   mood_tuple = request.args.get('moods').split('_')
-  result = lda.calculate_parameters(mood_tuple)
+  result = lda.calculate_parameters(mysql, mood_tuple)
   if result:
     return jsonify({"result": "OK", "coefficients": result}), 201
   else:
