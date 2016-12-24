@@ -12,7 +12,7 @@
 #   speechiness DECIMAL(12,8) NULL,
 #   loudness DECIMAL(12,8) NULL,
 #   acousticness DECIMAL(12,8) NULL,
-#   training BOOL NULL,
+#   count BIGINT 0,
 #   PRIMARY KEY (id, spotify_id)
 #   );
 
@@ -24,10 +24,8 @@ import MySQLdb
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-class DatabaseInterface:
-
-  def __init__(self):
-    if os.getenv("ENV")=="production":
-      self.mysql = MySQLdb.connect(user = "root", db = "py_mood", host = "localhost", passwd = os.getenv("DB_PASSWORD"))
-    else:
-      self.mysql = MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")
+def mysql():
+  if os.getenv("ENV")=="production":
+    return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost", passwd = os.getenv("DB_PASSWORD"))
+  else:
+    return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")

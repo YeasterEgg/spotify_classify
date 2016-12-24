@@ -3,12 +3,13 @@ import json
 
 import mood as ml
 import config as cfg
+
 import MySQLdb
 import os
 
 app = Flask(__name__)
 
-mysql = cfg.db.DatabaseInterface().mysql
+mysql = cfg.db.mysql()
 
 VERSION = "v0.3"
 
@@ -25,7 +26,7 @@ def authorize(request, object_name):
   body = json.loads(request.json)
   token = body['token']['token']
   ts = body['token']['ts']
-  authorized = cfg.auth.Authorizer(token, ts).correct()
+  authorized = cfg.authorizer.Authorizer(token, ts).correct()
   if not authorized:
     return jsonify({'error': 'Token not Valid!', 'token': token}), 403
   return {'success': True, 'body': body[object_name]}
@@ -70,7 +71,7 @@ def playlist_post():
 
 @app.route(versionate_route('reload_params'), methods=['GET'])
 def reload_params_get():
-  if request.args.get('token') != cfg.auth.Authorizer.KEY:
+  if request.args.get('token') != cfg.authorizer.Authorizer.KEY:
     return jsonify({'error': "You are not authorized"}), 403
   mood_tuple = request.args.get('moods').split('_')
   result = lda.calculate_parameters(mysql, mood_tuple)

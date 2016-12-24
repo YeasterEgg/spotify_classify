@@ -8,3 +8,4 @@ scipy==0.18.1
 sklearn==0.0
 virtualenv==15.1.0
 python-dotenv
+requests==2.12.4
