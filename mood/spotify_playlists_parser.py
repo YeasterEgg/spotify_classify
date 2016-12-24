@@ -74,24 +74,25 @@ def count_lines(filename):
 
 def recover_features_from_tracks(tracks_file, mysql, mood = None):
   tracks_no = count_lines(tracks_file)
-  headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
   counter = 0
   with open(tracks_file, "r") as file:
     for track_id in file:
       print("{}%".format((counter * 100) / tracks_no))
       counter = counter + 1
       clean_id = track_id.strip("\n")
-      result = requests.get(track_features_url(clean_id), headers = headers)
-      if result.status_code == 200:
-        write_features_to_db(result.json(), mysql, mood)
+      write_features_to_db(clean_id, mysql, mood)
 
-def write_features_to_db(track, mysql, mood):
+def write_features_to_db(track_id, mysql, mood):
+  headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
   cursor = mysql.cursor()
-  cursor.execute("SELECT COUNT(*) from tracks WHERE spotify_id = '{}'".format(track["id"]))
+  cursor.execute("SELECT COUNT(*) from tracks WHERE spotify_id = '{}'".format(track_id))
   count = cursor.fetchone()
   if count[0] == 0:
-    cursor.execute("INSERT INTO tracks (mood, spotify_id, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, count) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{})".format(mood, track["id"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], 1))
+    result = requests.get(track_features_url(track_id), headers = headers)
+    if result.status_code == 200:
+      track = result.json()
+      cursor.execute("INSERT INTO tracks (mood, spotify_id, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, count) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{})".format(mood, track_id, (track["duration_ms"] or 0), (track["danceability"] or 0), (track["acousticness"] or 0), (track["energy"] or 0), (track["liveness"] or 0), (track["valence"] or 0), (track["instrumentalness"] or 0), (track["tempo"] or 0), (track["speechiness"] or 0), (track["loudness"] or 0), 1))
   else:
-    cursor.execute("UPDATE tracks SET count = count + 1 WHERE spotify_id = '{}';".format(track["id"]))
+    cursor.execute("UPDATE tracks SET count = count + 1 WHERE spotify_id = '{}';".format(track_id))
   mysql.commit()
 
