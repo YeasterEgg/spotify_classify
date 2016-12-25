@@ -5,7 +5,8 @@ import csv
 from os.path import join, dirname
 from dotenv import load_dotenv
 
-dotenv_path = join(dirname(__file__), '.env')
+current_path = dirname(__file__)
+dotenv_path = join(current_path, '.env')
 load_dotenv(dotenv_path)
 
 def token_url():
@@ -36,27 +37,27 @@ def recover_playlist_from_query(mood, url = None, counter = 0):
   if result.status_code == 200:
     next_url = result.json()["playlists"]["next"]
     print("{}%".format((result.json()["playlists"]["offset"] * 100) / result.json()["playlists"]["total"]))
-    with open("./lists/{}.txt".format(mood), "a") as file:
+    with open("{}/lists/{}.txt".format(current_path, mood), "w") as file:
       for playlist in result.json()["playlists"]["items"]:
         file.write(playlist["tracks"]["href"])
         file.write("\n")
     if next_url is not None:
       recover_playlist_from_query(mood, next_url, counter = counter + 1)
-  return "./lists/{}.txt".format(mood)
+  return "{}/lists/{}.txt".format(current_path, mood)
 
 def recover_tracks_from_playlists(playlists_filename):
   playlists_no = count_lines(playlists_filename)
   headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
   tracks_filename = "tracks_{}".format(playlists_filename)
   counter = 0
-  with open("./lists/{}".format(playlists_filename), "r") as playlists:
-    with open("./lists/{}".format(tracks_filename), "a") as tracks:
+  with open("{}/lists/{}".format(current_path, playlists_filename), "r") as playlists:
+    with open("{}/lists/{}".format(current_path, tracks_filename), "w") as tracks:
       for line in playlists:
         print("{}%".format((counter * 100) / playlists_no))
         href = line.strip("\n")
         counter = counter + 1
         parse_playlist_tracks(href, tracks, headers)
-  return "./lists/{}".format(tracks_filename)
+  return "{}/lists/{}".format(current_path, tracks_filename)
 
 def parse_playlist_tracks(playlist_href, tracks_file, headers):
   result = requests.get(playlist_href, headers = headers)
@@ -72,7 +73,8 @@ def parse_playlist_tracks(playlist_href, tracks_file, headers):
 def count_lines(filename):
   return sum(1 for line in open(filename))
 
-def recover_features_from_tracks(tracks_file, mysql, mood = None):
+def recover_features_from_tracks(mood, mysql):
+  tracks_file = "{}/lists/{}".format(current_path, mood)
   tracks_no = count_lines(tracks_file)
   counter = 0
   with open(tracks_file, "r") as file:
