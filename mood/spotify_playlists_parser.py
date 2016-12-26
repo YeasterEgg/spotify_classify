@@ -45,12 +45,13 @@ def recover_playlist_from_query(mood, url = None, counter = 0):
       recover_playlist_from_query(mood, next_url, counter = counter + 1)
   return "{}/lists/{}.txt".format(current_path, mood)
 
-def recover_tracks_from_playlists(playlists_filename):
+def recover_tracks_from_playlists(mood):
+  playlists_filename = "{}/lists/{}.txt".format(current_path, mood)
   playlists_no = count_lines(playlists_filename)
   headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
-  tracks_filename = "tracks_{}".format(playlists_filename)
+  tracks_filename = "tracks_{}.txt".format(mood)
   counter = 0
-  with open("{}/lists/{}".format(current_path, playlists_filename), "r") as playlists:
+  with open("{}/lists/{}.txt".format(current_path, mood), "r") as playlists:
     with open("{}/lists/{}".format(current_path, tracks_filename), "w") as tracks:
       for line in playlists:
         print("{}%".format((counter * 100) / playlists_no))
@@ -74,7 +75,7 @@ def count_lines(filename):
   return sum(1 for line in open(filename))
 
 def recover_features_from_tracks(mood, mysql):
-  tracks_file = "{}/lists/{}".format(current_path, mood)
+  tracks_file = "{}/lists/tracks_{}.txt".format(current_path, mood)
   tracks_no = count_lines(tracks_file)
   counter = 0
   with open(tracks_file, "r") as file:
