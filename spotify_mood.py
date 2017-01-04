@@ -69,17 +69,6 @@ def playlist_post():
   else:
     return jsonify("NOPE"), 500
 
-@app.route(versionate_route('reload_params'), methods=['GET'])
-def reload_params_get():
-  if request.args.get('token') != cfg.authorizer.Authorizer.KEY:
-    return jsonify({'error': "You are not authorized"}), 403
-  mood_tuple = request.args.get('moods').split('_')
-  result = lda.calculate_parameters(mysql, mood_tuple)
-  if result:
-    return jsonify({"result": "OK", "coefficients": result}), 201
-  else:
-    return jsonify("NOPE"), 500
-
 @app.route(versionate_route('playlist'), methods=['GET'])
 def playlist_get():
   return "This is a POST endpoint!"
