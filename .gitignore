@@ -90,3 +90,7 @@ spotify_classify/
 
 # Rope project settings
 .ropeproject
+
+# Playlists and pkl
+*.txt
+*.pkl
