@@ -9,23 +9,14 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 def analyze_playlist(mysql, playlist):
   tracks = []
   cursor = mysql.cursor(MySQLdb.cursors.DictCursor)
-  for key, value in playlist["songlist"].items():
+  for key, value in playlist.items():
     parsed_track = parse_track(playlist, value)
-    cursor.execute("SELECT spotify_id, mood, training, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE spotify_id = '{}' AND training = {}".format(value["spotifyId"], playlist["training"]))
-    result = cursor.fetchone()
-    if result is not None:
-      parsed_track = result
-    else:
-      parsed_track = parse_track(playlist, value)
-      track_to_db(mysql, parsed_track)
     tracks.append(parsed_track)
   return tracks
 
 def parse_track(playlist, track):
   parsed = {}
   parsed["spotify_id"]       = track["spotifyId"]
-  parsed["mood"]             = playlist["mood"]
-  parsed["training"]         = playlist["training"]
   parsed["duration_ms"]      = track["duration_ms"]
   parsed["danceability"]     = track["features"]["danceability"]
   parsed["acousticness"]     = track["features"]["acousticness"]
@@ -38,12 +29,6 @@ def parse_track(playlist, track):
   parsed["loudness"]         = track["features"]["loudness"]
   return parsed
 
-## STORING METHODS
-
-def track_to_db(mysql, track):
-  mysql.cursor().execute("""INSERT INTO tracks (spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, training) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(track["spotify_id"], track["mood"], track["duration_ms"], track["danceability"], track["acousticness"], track["energy"], track["liveness"], track["valence"], track["instrumentalness"], track["tempo"], track["speechiness"], track["loudness"], track["training"]))
-  mysql.commit()
-
 ## ANALYSIS METHODS
 
 def predict_playlist(playlist, moods = ("happy", "sad")):
@@ -51,7 +36,7 @@ def predict_playlist(playlist, moods = ("happy", "sad")):
   filename = "_".join(mood for mood in moods_tuple)
   lda = load_model(filename)
   print(playlist)
-  df = pd.DataFrame(playlist).drop("mood", 1).set_index("spotify_id")
+  df = pd.DataFrame(playlist).set_index("spotify_id")
   classification = lda.predict(df)
   result = {}
   for t, m in zip(list(df.index.values), list(classification)):

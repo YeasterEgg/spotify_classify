@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, make_response, request
 import json
+import pdb
 
 import mood as ml
 import config as cfg
@@ -61,8 +62,8 @@ def playlist_post():
     playlist = auth['body']
   else:
     return auth
-  parsed_playlist = pa.analyze_playlist(mysql, playlist)
-  result = pa.predict_playlist(parsed_playlist)
+  parsed_playlist = ml.playlist_analyzer.analyze_playlist(mysql, playlist)
+  result = ml.playlist_analyzer.predict_playlist(parsed_playlist)
   print(result)
   if result:
     return jsonify({"result": "OK", "clusters": result}), 201
