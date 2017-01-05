@@ -49,7 +49,7 @@ def read_database(mysql, moods_tuple, threshold = 1):
   return pd.read_sql_query("SELECT spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND count > {}".format(moods_tuple, threshold), con = mysql, index_col = ["spotify_id"])
 
 def write_weights(mysql, mood_couple, accuracy, bias, weights):
-  data = tuple([mood_couple, accuracy, bias, *weights])
+  data = tuple([mood_couple, accuracy, bias].extend(weights))
   mysql.cursor().execute("""INSERT INTO perceptron_weights (mood_couple, weight_accuracy, bias, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",data)
   mysql.commit()
 
