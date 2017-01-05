@@ -15,7 +15,7 @@ def calculate_parameters(mysql, moods = ("happy", "sad")):
   X = df.drop("mood",1)
   Y = df[["mood"]]
   lda = LinearDiscriminantAnalysis(n_components=4, store_covariance=True)
-  lda.fit(X, Y)
+  lda.fit(X, Y.values.ravel())
   save_model(lda, filename)
   return list(lda.coef_[0])
 
