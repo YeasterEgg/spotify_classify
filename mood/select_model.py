@@ -19,7 +19,6 @@ def evaluate_models(mysql, moods, test_size = 0.2, seed = 42, num_folds = 50, sc
   filename = "_".join(mood for mood in moods_tuple)
   current_path = os.getcwd()
   file = os.path.join(current_path, "models", "{}_results.log".format(filename))
-
   df = read_database(mysql, moods_tuple)
   array = df.values
   X = array[:,1:10]
