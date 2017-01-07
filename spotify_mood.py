@@ -62,9 +62,7 @@ def playlist_post():
     playlist = auth['body']
   else:
     return auth
-  parsed_playlist = ml.playlist_analyzer.analyze_playlist(mysql, playlist)
-  result = ml.playlist_analyzer.predict_playlist(parsed_playlist)
-  print(result)
+  result = ml.playlist_analyzer.analyze_playlist(playlist, ["happy", "sad"])
   if result:
     return jsonify({"result": "OK", "clusters": result}), 201
   else:

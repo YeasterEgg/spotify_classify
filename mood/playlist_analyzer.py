@@ -3,16 +3,23 @@ import os
 import MySQLdb
 from sklearn.externals import joblib
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-
+import pdb
 ## PARSING METHODS
 
-def analyze_playlist(mysql, playlist):
+def analyze_playlist(playlist, moods = ["happy", "sad"]):
+  moods_tuple = tuple(sorted(moods))
+  filename = "_".join(mood for mood in moods_tuple)
+  lda = load_model(filename)
   tracks = []
-  cursor = mysql.cursor(MySQLdb.cursors.DictCursor)
   for key, value in playlist.items():
     parsed_track = parse_track(playlist, value)
     tracks.append(parsed_track)
-  return tracks
+  df = pd.DataFrame(tracks).set_index("spotify_id")
+  classification = lda.predict(df)
+  result = {}
+  for t, m in zip(list(df.index.values), list(classification)):
+    result[t] = m
+  return result
 
 def parse_track(playlist, track):
   parsed = {}
@@ -30,18 +37,6 @@ def parse_track(playlist, track):
   return parsed
 
 ## ANALYSIS METHODS
-
-def predict_playlist(playlist, moods = ("happy", "sad")):
-  moods_tuple = tuple(sorted(moods))
-  filename = "_".join(mood for mood in moods_tuple)
-  lda = load_model(filename)
-  print(playlist)
-  df = pd.DataFrame(playlist).set_index("spotify_id")
-  classification = lda.predict(df)
-  result = {}
-  for t, m in zip(list(df.index.values), list(classification)):
-    result[t] = m
-  return result
 
 def load_model(filename):
   current_path = os.getcwd()
