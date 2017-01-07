@@ -92,5 +92,5 @@ spotify_classify/
 .ropeproject
 
 # Playlists and pkl
-*.txt
-*.pkl
+models/*.txt
+models/*.pkl
