@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 mysql = cfg.db.mysql()
 
-VERSION = "v0.3"
+VERSION = "v0.4"
 
 def versionate_route(route):
   return ('/' + VERSION + '/' + route)
