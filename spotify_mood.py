@@ -59,7 +59,7 @@ def not_found(error):
 def playlist_post():
   auth = authorize(request, "playlist")
   if auth['success']:
-    playlist = auth['body']
+    playlist = auth['form']
   else:
     return auth
   result = ml.playlist_analyzer.analyze_playlist(playlist, ["happy", "sad"])
