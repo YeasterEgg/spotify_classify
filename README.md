@@ -10,7 +10,7 @@ The first part is the creation of the classification model: since it stores the 
 
 #### Classification Models
 
-Each classification model is binary, as in it can classify only between 2 moods. The GET endpoint **/{version}/reload_params?moods={mood1_mood2}&token={SECRET}** recreates the model using the tracks in the database.
+Each classification model is binary, as in it can classify only between 2 moods.
 The models I've created used other users' playlists from spotify defined by some mood, as *happy* or *sad*.
 
 #### Moods Classification

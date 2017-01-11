@@ -35,11 +35,10 @@
 #   );
 
 import os
-from os.path import join, dirname
 from dotenv import load_dotenv
 import MySQLdb
 
-dotenv_path = join(dirname(__file__), '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 def mysql():
@@ -47,3 +46,37 @@ def mysql():
     return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost", passwd = os.getenv("DB_PASSWORD"))
   else:
     return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")
+
+def training_to_json(limit):
+  sql = "SELECT spotify_id, mood, count, duration_ms, danceability, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, acousticness FROM tracks ORDER BY count DESC"
+  if limit:
+    sql += " LIMIT {}".format(limit)
+  cursor = mysql().cursor()
+  count = cursor.execute(sql)
+
+  header = ["spotify_id", "mood", "count", "duration_ms", "danceability", "energy", "liveness", "valence", "instrumentalness", "tempo", "speechiness", "loudness", "acousticness"]
+  stats = {variable: 0 for variable in header[2:]}
+  stats["total_songs"] = 0
+  rows = []
+  for result in cursor.fetchall():
+    stats["total_songs"] += 1
+    song = {
+      "spotify_id": result[0],
+      "mood": result[1],
+      "count": result[2],
+      "duration_ms": result[3],
+      "danceability": result[4],
+      "energy": result[5],
+      "liveness": result[6],
+      "valence": result[7],
+      "instrumentalness": result[8],
+      "tempo": result[9],
+      "speechiness": result[10],
+      "loudness": result[11],
+      "acousticness": result[12]
+    }
+    rows.append(song)
+    for key, value in song.items():
+      if key in stats:
+        stats[key] += value
+  return { "header": header, "data": rows, "stats": stats }
