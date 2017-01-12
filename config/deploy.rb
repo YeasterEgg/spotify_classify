@@ -7,8 +7,8 @@ set :deploy_to, '/var/www/spotify_classify'
 set :log_level, :info
 set :keep_releases, 2
 
-role :app, "46.101.114.92"
-role :web, "46.101.114.92"
+role :app, "root@46.101.114.92"
+role :web, "root@46.101.114.92"
 
 set :branch, ENV["BRANCH"] || 'master'
 

@@ -1,38 +1,21 @@
-# CREATE TABLE tracks (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   spotify_id VARCHAR(45) NOT NULL,
-#   mood VARCHAR(45) NOT NULL,
-#   duration_ms BIGINT NULL,
-#   danceability DECIMAL(12,8) NULL,
-#   energy DECIMAL(12,8) NULL,
-#   liveness DECIMAL(12,8) NULL,
-#   valence DECIMAL(12,8) NULL,
-#   instrumentalness DECIMAL(12,8) NULL,
-#   tempo DECIMAL(12,8) NULL,
-#   speechiness DECIMAL(12,8) NULL,
-#   loudness DECIMAL(12,8) NULL,
-#   acousticness DECIMAL(12,8) NULL,
-#   count BIGINT 0,
-#   PRIMARY KEY (id, spotify_id)
-#   );
+# CREATE TABLE `tracks` (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `spotify_id` varchar(45) NOT NULL,
+#   `mood` varchar(45) NOT NULL,
+#   `duration_ms` bigint(20) DEFAULT NULL,
+#   `danceability` decimal(12,8) DEFAULT NULL,
+#   `energy` decimal(12,8) DEFAULT NULL,
+#   `liveness` decimal(12,8) DEFAULT NULL,
+#   `valence` decimal(12,8) DEFAULT NULL,
+#   `instrumentalness` decimal(12,8) DEFAULT NULL,
+#   `tempo` decimal(12,8) DEFAULT NULL,
+#   `speechiness` decimal(12,8) DEFAULT NULL,
+#   `loudness` decimal(12,8) DEFAULT NULL,
+#   `acousticness` decimal(12,8) DEFAULT NULL,
+#   `count` bigint(20) DEFAULT NULL,
+#   PRIMARY KEY (`id`,`spotify_id`)
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-# CREATE TABLE perceptron_weights (
-#   id INT NOT NULL AUTO_INCREMENT,
-#   mood_couple VARCHAR(45) NOT NULL,
-#   weight_accuracy DECIMAL(18,8) NULL,
-#   bias DECIMAL(18,8) NULL,
-#   duration_ms DECIMAL(18,8) NULL,
-#   danceability DECIMAL(18,8) NULL,
-#   energy DECIMAL(18,8) NULL,
-#   liveness DECIMAL(18,8) NULL,
-#   valence DECIMAL(18,8) NULL,
-#   instrumentalness DECIMAL(18,8) NULL,
-#   tempo DECIMAL(18,8) NULL,
-#   speechiness DECIMAL(18,8) NULL,
-#   loudness DECIMAL(18,8) NULL,
-#   acousticness DECIMAL(18,8) NULL,
-#   PRIMARY KEY (id)
-#   );
 
 import os
 from dotenv import load_dotenv
