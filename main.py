@@ -16,10 +16,6 @@ env = Environment(loader=FileSystemLoader('./templates/.'))
 async def home(request):
   return html(env.get_template('home.j2').render())
 
-@app.route("/d3js")
-async def d3js(request):
-  return html(env.get_template('d3js.j2').render())
-
 @app.route('/playlist')
 async def playlist_post(request):
   if not request.json or not "playlist" in request.json or not "token" in request.json:
