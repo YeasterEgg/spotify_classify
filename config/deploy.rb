@@ -16,7 +16,6 @@ set :scm, :git
 
 after :"deploy:finished", :change_ownership do
   on roles(:app) do
-    p "#{release_path}"
     execute "sudo chown -R www-data:www-data #{release_path}/"
   end
 end
