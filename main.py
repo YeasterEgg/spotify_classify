@@ -5,7 +5,7 @@ import json as json_parser
 import os
 
 import mood as ml
-import config as cfg
+import db_config as cfg
 
 app = Sanic(__name__)
 app.static('/public', './public')
