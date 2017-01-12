@@ -3,7 +3,7 @@ lock '3.6.1'
 
 set :application, 'spotify_classify'
 set :repo_url, 'git@github.com:YeasterEgg/spotify_classify.git'
-set :deploy_to, '/var/www/spotify_classify'
+set :deploy_to, '/var/www/pymood'
 set :log_level, :info
 set :keep_releases, 2
 
@@ -13,3 +13,10 @@ role :web, "root@46.101.114.92"
 set :branch, ENV["BRANCH"] || 'master'
 
 set :scm, :git
+
+after :"deploy:finished", :change_ownership do
+  on roles(:app) do
+    p "#{release_path}"
+    execute "sudo chown -R www-data:www-data #{release_path}/"
+  end
+end
