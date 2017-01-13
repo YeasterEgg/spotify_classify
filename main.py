@@ -1,55 +1,40 @@
-from sanic import Sanic
-from sanic.response import json, html
-from jinja2 import Environment, FileSystemLoader
+import hug
 import json as json_parser
 import os
-
 import mood as ml
 import db_config as cfg
+import pdb
 
-app = Sanic(__name__)
-current_path = os.path.dirname(__file__)
-app.static(current_path + '/public', './public/')
-
-env = Environment(loader=FileSystemLoader(current_path + '/templates/.'))
-
-@app.route('/')
+@hug.get("/happy_birthday")
 async def home(request):
-  return html(env.get_template('home.j2').render())
+  return "ciao"
 
-@app.route('/playlist')
-async def playlist_post(request):
-  if not request.json or not "playlist" in request.json or not "token" in request.json:
-    return json({'error': 'Json missing or not formatted correctly!'})
+@hug.post('/playlist')
+def playlist_post(body):
+  if not body or not "playlist" in body or not "token" in body:
+    return {'error': 'Json missing or not formatted correctly!'}
 
-  body = json_parser.loads(request.json)
+  body = json_parser.loads(body)
   token = body['token']['token']
   ts = body['token']['ts']
 
   if cfg.authorize(token, ts):
     playlist = body['playlist']
   else:
-    return json({'error': 'Token not Valid!', 'token': token})
+    return {'error': 'Token not Valid!', 'token': token}
 
   result = ml.playlist_analyzer.analyze_playlist(playlist, ["happy", "sad"])
 
   if result:
-    return json({"result": "OK", "clusters": result})
+    return {"result": "OK", "clusters": result}
   else:
-    return json({"NOPE"})
+    return {"NOPE"}
 
-@app.route("/songs")
-async def songs(request):
+@hug.get("/songs")
+def songs(limit: hug.types.number = None):
   cursor = cfg.db.mysql().cursor()
-  limit = None
-  if ("limit" in request.args) and request.args["limit"][0].isdigit():
-    limit = request.args["limit"][0]
-  songs = cfg.db.training_to_json(limit = limit or None)
-  return json(songs)
-
-@app.route('/<fallback>')
-async def fallback(request, fallback):
-  return html("There is nothing here in {}! Go back to <a href='/'>HERE</a> where you can see the content.".format(fallback))
-
-if __name__ == '__main__':
-  app.run(debug=True, port=4000)
+  if limit:
+    songs = cfg.db.training_to_json(limit)
+  else:
+    songs = cfg.db.training_to_json(None)
+  return songs
