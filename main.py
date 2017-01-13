@@ -8,9 +8,10 @@ import mood as ml
 import db_config as cfg
 
 app = Sanic(__name__)
-app.static('/public', './public')
+current_path = os.path.dirname(__file__)
+app.static(current_path + '/public', './public/')
 
-env = Environment(loader=FileSystemLoader('./templates/.'))
+env = Environment(loader=FileSystemLoader(current_path + '/templates/.'))
 
 @app.route('/')
 async def home(request):
