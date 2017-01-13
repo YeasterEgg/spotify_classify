@@ -1,13 +1,7 @@
 import hug
 import json as json_parser
-import os
 import mood as ml
 import db_config as cfg
-import pdb
-
-@hug.get("/happy_birthday")
-async def home(request):
-  return "ciao"
 
 @hug.post('/playlist')
 def playlist_post(body):
@@ -30,7 +24,7 @@ def playlist_post(body):
   else:
     return {"NOPE"}
 
-@hug.get("/songs")
+@hug.get("/songs", examples="?limit=25")
 def songs(limit: hug.types.number = None):
   cursor = cfg.db.mysql().cursor()
   if limit:
