@@ -3,7 +3,12 @@ import requests
 import base64
 import csv
 import pdb
-from os.path import dirname
+from dotenv import load_dotenv
+from os.path import dirname, join
+
+current_path = dirname(__file__)
+dotenv_path = join(current_path, '.env')
+load_dotenv(dotenv_path)
 
 BATCH_MAX_SIZE = 50
 
