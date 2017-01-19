@@ -3,7 +3,7 @@ import requests
 import base64
 import csv
 import pdb
-from os.path import join, dirname
+from os.path import dirname
 
 BATCH_MAX_SIZE = 50
 

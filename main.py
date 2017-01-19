@@ -3,6 +3,7 @@ import json as json_parser
 import mood as ml
 import db_config as cfg
 from dotenv import load_dotenv
+from os.path import dirname, join
 
 current_path = dirname(__file__)
 dotenv_path = join(current_path, '.env')
