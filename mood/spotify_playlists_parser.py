@@ -87,23 +87,20 @@ def count_lines(filename):
 
 def recover_features_from_tracks(mood, mysql):
   tracks_file = "{}/lists/tracks_{}.txt".format(current_path, mood)
-  with open(tracks_file, "r") as file:
-    [retrieve_batch(chunk, mysql, mood) for chunk in chunks([line for line in file], BATCH_MAX_SIZE)]
+  lines = open(tracks_file, "r").readlines()
+  songs = {i.strip(): lines.count(i) for i in lines}
+  [retrieve_batch(songs.keys()[i:i+BATCH_MAX_SIZE], mysql, mood, songs) for i in range(0, len(songs), BATCH_MAX_SIZE)]
 
-def retrieve_batch(ids, mysql, mood):
-  print("\n".join(ids))
-  headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
-  result_feat = requests.get(tracks_features_url(ids), headers = headers)
-  result_std = requests.get(tracks_url(ids), headers = headers)
-  if result_feat.status_code == 200 & result_std.status_code == 200:
-    tracks_feat = result_feat.json()["audio_features"]
-    tracks = result_std.json()["tracks"]
-    combined_tracks = zip(tracks, tracks_feat)
-    [write_features_to_db(track, mysql, mood) for track in combined_tracks]
-
-def chunks(chunkable_list, chunk_size):
-  for i in range(0, len(chunkable_list), chunk_size):
-    yield chunkable_list[i : i+chunk_size]
+def retrieve_batch(ids, mysql, mood, dictionary):
+  print(ids)
+  # headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
+  # result_feat = requests.get(tracks_features_url(ids), headers = headers)
+  # result_std = requests.get(tracks_url(ids), headers = headers)
+  # if result_feat.status_code == 200 & result_std.status_code == 200:
+  #   tracks_feat = result_feat.json()["audio_features"]
+  #   tracks = result_std.json()["tracks"]
+  #   combined_tracks = zip(tracks, tracks_feat)
+  #   [write_features_to_db(track, mysql, mood) for track in combined_tracks]
 
 def write_features_to_db(track, mysql, mood):
   cursor = mysql.cursor()
