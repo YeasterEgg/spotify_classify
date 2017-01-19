@@ -114,7 +114,7 @@ def write_features_to_db(track, mysql, mood):
   count = cursor.fetchone()
   if count[0] == 0:
     artist = track[0]["artists"][0]["name"] if (len(track[0]["artists"]) > 0) else "none"
-    cursor.execute("INSERT INTO tracks (mood, spotify_id, title, artist, popularity, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, count) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{})".format(mood, track[0]['id'], track[0]['title'], track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), 1))
+    cursor.execute("INSERT INTO tracks (mood, spotify_id, title, artist, popularity, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, count) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{})".format(mood, track[0]['id'], track[0]['name'], track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), 1))
   else:
     cursor.execute("UPDATE tracks SET count = count + 1 WHERE spotify_id = '{}';".format(track[0]['id']))
   mysql.commit()
