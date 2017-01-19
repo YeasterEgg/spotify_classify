@@ -22,6 +22,6 @@ end
 
 after :change_ownership, :copy_dotenv do
   on roles(:web) do
-    execute "ln -ns #{shared_path}/.env #{current_path}/db_config/."
+    execute "ln -ns #{shared_path}/.env #{current_path}/."
   end
 end

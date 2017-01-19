@@ -20,11 +20,7 @@
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 import os
-from dotenv import load_dotenv
 import MySQLdb
-
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(dotenv_path)
 
 def mysql():
   if os.getenv("ENV")=="production":

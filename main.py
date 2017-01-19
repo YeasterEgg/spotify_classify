@@ -2,6 +2,11 @@ import hug
 import json as json_parser
 import mood as ml
 import db_config as cfg
+from dotenv import load_dotenv
+
+current_path = dirname(__file__)
+dotenv_path = join(current_path, '.env')
+load_dotenv(dotenv_path)
 
 @hug.post('/playlist')
 def playlist_post(body):
