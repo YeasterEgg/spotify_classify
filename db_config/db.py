@@ -17,7 +17,6 @@
 #   PRIMARY KEY (`id`,`spotify_id`)
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 import os
 from dotenv import load_dotenv
 import MySQLdb
