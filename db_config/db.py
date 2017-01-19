@@ -1,8 +1,8 @@
 # CREATE TABLE `tracks` (
 #   `id` int(11) NOT NULL AUTO_INCREMENT,
 #   `spotify_id` varchar(45) NOT NULL,
-#   `title` varchar(80) NOT NULL,
-#   `artist` varchar(80) NOT NULL,
+#   `title` varchar(255) NOT NULL,
+#   `artist` varchar(255) NOT NULL,
 #   `mood` varchar(45) NOT NULL,
 #   `popularity` bigint(20) DEFAULT NULL,
 #   `duration_ms` bigint(20) DEFAULT NULL,
