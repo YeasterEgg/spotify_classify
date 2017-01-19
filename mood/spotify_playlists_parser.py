@@ -87,16 +87,12 @@ def count_lines(filename):
 
 def recover_features_from_tracks(mood, mysql):
   tracks_file = "{}/lists/tracks_{}.txt".format(current_path, mood)
-  tracks_no = count_lines(tracks_file)
-  batches_no = round(tracks_no / BATCH_MAX_SIZE) + 1
-  counter = 0
   with open(tracks_file, "r") as file:
-    [retrieve_batch(chunk, mysql, mood, counter, batches_no) for chunk in chunks([line for line in file], BATCH_MAX_SIZE)]
+    [retrieve_batch(chunk, mysql, mood, counter) for chunk in chunks([line for line in file], BATCH_MAX_SIZE)]
 
-def retrieve_batch(ids, mysql, mood, counter, batches_no):
+def retrieve_batch(ids, mysql, mood, counter):
+  print("\n".join(ids))
   headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
-  print("{}%".format((counter * 100) / batches_no))
-  counter = counter + 1
   result_feat = requests.get(tracks_features_url(ids), headers = headers)
   result_std = requests.get(tracks_url(ids), headers = headers)
   if result_feat.status_code == 200 & result_std.status_code == 200:
