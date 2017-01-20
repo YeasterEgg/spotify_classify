@@ -6,6 +6,7 @@ import pdb
 from dotenv import load_dotenv
 from os.path import dirname, join
 import re
+from collections import Counter
 
 current_path = dirname(__file__)
 dotenv_path = join(current_path, '.env')
@@ -85,22 +86,34 @@ def parse_playlist_tracks(playlist_href, tracks_file, headers):
 def count_lines(filename):
   return sum(1 for line in open(filename))
 
-def recover_features_from_tracks(mood, mysql):
+def insert_songs_in_db(mood, mysql):
   tracks_file = "{}/lists/tracks_{}.txt".format(current_path, mood)
-  lines = open(tracks_file, "r").readlines()
-  songs = {i.strip(): lines.count(i) for i in lines}
-  [retrieve_batch(songs.keys()[i:i+BATCH_MAX_SIZE], mysql, mood, songs) for i in range(0, len(songs), BATCH_MAX_SIZE)]
+  lines = [i.strip() for i in open(tracks_file, "r").readlines()]
+  songs = dict(Counter(lines))
+  batch_size = 10000
+  [write_batch_to_db(list(songs.items())[i:i+batch_size], mysql, mood) for i in range(0, len(songs), batch_size)]
+  mysql.commit()
 
-def retrieve_batch(ids, mysql, mood, dictionary):
-  print(ids)
-  # headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
-  # result_feat = requests.get(tracks_features_url(ids), headers = headers)
-  # result_std = requests.get(tracks_url(ids), headers = headers)
-  # if result_feat.status_code == 200 & result_std.status_code == 200:
-  #   tracks_feat = result_feat.json()["audio_features"]
-  #   tracks = result_std.json()["tracks"]
-  #   combined_tracks = zip(tracks, tracks_feat)
-  #   [write_features_to_db(track, mysql, mood) for track in combined_tracks]
+def write_batch_to_db(batch, mysql, mood):
+  cursor = mysql.cursor()
+  raw_sql = "INSERT INTO tracks (spotify_id, count, mood) VALUES {};".format(",".join(["("+",".join(["'" + str(k) + "'", str(v), "'" + mood + "'"])+")" for k,v in batch ]))
+  cursor.execute(raw_sql)
+
+def complete_features_from_db(mood, mysql):
+  cursor = mysql.cursor()
+  cursor.execute("SELECT spotify_id FROM tracks WHERE mood = '{}' AND popularity IS NULL".format(mood))
+  tracks = cursor.fetchall()
+  [retrieve_batch(ids[i:i+BATCH_MAX_SIZE], mysql, mood) for i in range(0, len(tracks), BATCH_MAX_SIZE)]
+
+def retrieve_batch(ids, mysql, mood):
+  headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
+  result_feat = requests.get(tracks_features_url(ids), headers = headers)
+  result_std = requests.get(tracks_url(ids), headers = headers)
+  if result_feat.status_code == 200 & result_std.status_code == 200:
+    tracks_feat = result_feat.json()["audio_features"]
+    tracks = result_std.json()["tracks"]
+    combined_tracks = zip(tracks, tracks_feat)
+    [write_features_to_db(track, mysql, mood) for track in combined_tracks]
 
 def write_features_to_db(track, mysql, mood):
   cursor = mysql.cursor()
