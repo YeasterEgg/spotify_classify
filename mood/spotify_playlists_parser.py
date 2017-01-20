@@ -103,25 +103,28 @@ def complete_features_from_db(mood, mysql):
   cursor = mysql.cursor()
   cursor.execute("SELECT spotify_id FROM tracks WHERE mood = '{}' AND popularity IS NULL".format(mood))
   tracks = cursor.fetchall()
-  [retrieve_batch(ids[i:i+BATCH_MAX_SIZE], mysql, mood) for i in range(0, len(tracks), BATCH_MAX_SIZE)]
+  [retrieve_batch(tracks[i:i+BATCH_MAX_SIZE], mysql, mood, i, len(tracks)) for i in range(0, len(tracks), BATCH_MAX_SIZE)]
 
-def retrieve_batch(ids, mysql, mood):
+def retrieve_batch(ids, mysql, mood, idx, total_tracks_number):
+  perc = idx * (BATCH_MAX_SIZE / total_tracks_number)
+  print("%f" % perc)
   headers = {'Authorization': 'Bearer ' + access_token()["access_token"] }
-  result_feat = requests.get(tracks_features_url(ids), headers = headers)
-  result_std = requests.get(tracks_url(ids), headers = headers)
+  result_feat = requests.get(tracks_features_url([s_id[0] for s_id in ids]), headers = headers)
+  result_std = requests.get(tracks_url([s_id[0] for s_id in ids]))
   if result_feat.status_code == 200 & result_std.status_code == 200:
     tracks_feat = result_feat.json()["audio_features"]
     tracks = result_std.json()["tracks"]
     combined_tracks = zip(tracks, tracks_feat)
     [write_features_to_db(track, mysql, mood) for track in combined_tracks]
+    mysql.commit()
 
 def write_features_to_db(track, mysql, mood):
   cursor = mysql.cursor()
-  cursor.execute("SELECT COUNT(*) from tracks WHERE spotify_id = '{}'".format(track[0]['id']))
-  count = cursor.fetchone()
-  if count[0] == 0:
-    artist = track[0]["artists"][0]["name"] if (len(track[0]["artists"]) > 0) else "none"
-    cursor.execute("INSERT INTO tracks (mood, spotify_id, title, artist, popularity, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, count) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{})".format(mood, track[0]['id'], re.sub('[^0-9a-zA-Z\s]+', '', track[0]['name'])[:200], re.sub('[^0-9a-zA-Z\s]+', '', artist)[:200], track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), 1))
+  raw_sql = "UPDATE tracks SET title = '{}', artist = '{}', popularity = {}, duration_ms = {}, danceability = {}, acousticness = {}, energy = {}, liveness = {}, valence = {}, instrumentalness = {}, tempo = {}, speechiness = {}, loudness = {} WHERE spotify_id = '{}'"
+  if track[1] != None and track[0] != None:
+    artist = re.sub('[^0-9a-zA-Z\s]+', '', track[0]["artists"][0]["name"])[:200] if (len(track[0]["artists"]) > 0) else "none"
+    title = re.sub('[^0-9a-zA-Z\s]+', '', track[0]['name'])[:200] if (len(track[0]["name"])) else "none"
+    values_list = (title, artist , track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), track[0]['id'])
   else:
-    cursor.execute("UPDATE tracks SET count = count + 1 WHERE spotify_id = '{}';".format(track[0]['id']))
-  mysql.commit()
+    values_list = ("null", "null" , -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, track[0]['id'])
+  cursor.execute(raw_sql.format(*values_list))
