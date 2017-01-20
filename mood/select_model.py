@@ -11,8 +11,14 @@ from sklearn.svm import SVC
 import pandas as pd
 import os
 
+def exclude_double_songs(mysql, moods_tuple):
+  ''' Not really sure, seems to be the longest query ever, but it should work '''
+  cursor = mysql.cursor()
+  cursor.execute("UPDATE tracks t0 SET t0.good_for_model = 0 WHERE t0.spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t2 GROUP BY t2.spotify_id HAVING COUNT(*) = 2)")
+  mysql.commit()
+
 def read_database(mysql, moods_tuple, threshold = 1):
-  return pd.read_sql_query("SELECT spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND count > {}".format(moods_tuple, threshold), con = mysql, index_col = ["spotify_id"])
+  return pd.read_sql_query("SELECT spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND good_for_model = 1 AND count > {}".format(moods_tuple, threshold), con = mysql, index_col = ["spotify_id"])
 
 def evaluate_models(mysql, moods, test_size = 0.2, seed = 42, num_folds = 50, scoring = "accuracy"):
   moods_tuple = tuple(sorted(moods))
