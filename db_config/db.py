@@ -35,14 +35,14 @@ def mysql():
     return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")
 
 def training_to_json(limit):
-  sql = "SELECT spotify_id, mood, count, duration_ms, danceability, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, acousticness FROM tracks ORDER BY count DESC"
+  sql = "SELECT spotify_id, mood, artist, title, popularity, count, duration_ms, danceability, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, acousticness FROM tracks WHERE popularity IS NOT NULL AND popularity > 0 ORDER BY RAND()"
   if limit:
     sql += " LIMIT {}".format(limit)
   cursor = mysql().cursor()
   count = cursor.execute(sql)
 
-  header = ["spotify_id", "mood", "count", "duration_ms", "danceability", "energy", "liveness", "valence", "instrumentalness", "tempo", "speechiness", "loudness", "acousticness"]
-  stats = {variable: 0 for variable in header[2:]}
+  header = ["spotify_id", "mood", "artist", "title", "popularity", "count", "duration_ms", "danceability", "energy", "liveness", "valence", "instrumentalness", "tempo", "speechiness", "loudness", "acousticness"]
+  stats = {variable: 0 for variable in header[4:]}
   stats["total_songs"] = 0
   rows = []
   for result in cursor.fetchall():
@@ -50,17 +50,20 @@ def training_to_json(limit):
     song = {
       "spotify_id": result[0],
       "mood": result[1],
-      "count": result[2],
-      "duration_ms": result[3],
-      "danceability": result[4],
-      "energy": result[5],
-      "liveness": result[6],
-      "valence": result[7],
-      "instrumentalness": result[8],
-      "tempo": result[9],
-      "speechiness": result[10],
-      "loudness": result[11],
-      "acousticness": result[12]
+      "artist": result[2],
+      "title": result[3],
+      "popularity": result[4],
+      "count": result[5],
+      "duration_ms": result[6],
+      "danceability": result[7],
+      "energy": result[8],
+      "liveness": result[9],
+      "valence": result[10],
+      "instrumentalness": result[11],
+      "tempo": result[12],
+      "speechiness": result[13],
+      "loudness": result[14],
+      "acousticness": result[15]
     }
     rows.append(song)
     for key, value in song.items():
