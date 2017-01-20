@@ -120,11 +120,11 @@ def retrieve_batch(ids, mysql, mood, idx, total_tracks_number):
 
 def write_features_to_db(track, mysql, mood):
   cursor = mysql.cursor()
-  raw_sql = "UPDATE tracks SET title = '{}', artist = '{}', popularity = {}, duration_ms = {}, danceability = {}, acousticness = {}, energy = {}, liveness = {}, valence = {}, instrumentalness = {}, tempo = {}, speechiness = {}, loudness = {} WHERE spotify_id = '{}'"
+  raw_sql = "UPDATE tracks SET title = '{}', artist = '{}', popularity = {}, duration_ms = {}, danceability = {}, acousticness = {}, energy = {}, liveness = {}, valence = {}, instrumentalness = {}, tempo = {}, speechiness = {}, loudness = {}, active = {} WHERE spotify_id = '{}'"
   if track[1] != None and track[0] != None:
     artist = re.sub('[^0-9a-zA-Z\s]+', '', track[0]["artists"][0]["name"])[:200] if (len(track[0]["artists"]) > 0) else "none"
     title = re.sub('[^0-9a-zA-Z\s]+', '', track[0]['name'])[:200] if (len(track[0]["name"])) else "none"
-    values_list = (title, artist , track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), track[0]['id'])
+    values_list = (title, artist , track[0]["popularity"], (track[1]["duration_ms"] or 0), (track[1]["danceability"] or 0), (track[1]["acousticness"] or 0), (track[1]["energy"] or 0), (track[1]["liveness"] or 0), (track[1]["valence"] or 0), (track[1]["instrumentalness"] or 0), (track[1]["tempo"] or 0), (track[1]["speechiness"] or 0), (track[1]["loudness"] or 0), 1, track[0]['id'])
   else:
-    values_list = ("null", "null" , -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, track[0]['id'])
+    values_list = ("null", "null" , -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, track[0]['id'])
   cursor.execute(raw_sql.format(*values_list))
