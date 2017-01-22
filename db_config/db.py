@@ -42,9 +42,29 @@ def training_to_json(limit):
     sql += " LIMIT {}".format(limit)
   cursor = mysql().cursor()
   count = cursor.execute(sql)
-
-  header = ["spotify_id", "mood", "artist", "title", "popularity", "count", "duration_ms", "danceability", "energy", "liveness", "valence", "instrumentalness", "tempo", "speechiness", "loudness", "acousticness"]
-  stats = {variable: 0 for variable in header[4:]}
+  headers = {
+    "numeric":[
+      "popularity",
+      "count",
+      "duration_ms",
+      "danceability",
+      "energy",
+      "liveness",
+      "valence",
+      "instrumentalness",
+      "tempo",
+      "speechiness",
+      "loudness",
+      "acousticness"
+    ],
+    "textual":[
+      "spotify_id",
+      "mood",
+      "artist",
+      "title",
+    ]
+  }
+  stats = {variable: 0 for variable in headers["numeric"]}
   stats["total_songs"] = 0
   rows = []
   for result in cursor.fetchall():
@@ -54,21 +74,22 @@ def training_to_json(limit):
       "mood": result[1],
       "artist": result[2],
       "title": result[3],
-      "popularity": result[4],
-      "count": result[5],
-      "duration_ms": result[6],
-      "danceability": result[7],
-      "energy": result[8],
-      "liveness": result[9],
-      "valence": result[10],
-      "instrumentalness": result[11],
-      "tempo": result[12],
-      "speechiness": result[13],
-      "loudness": result[14],
-      "acousticness": result[15]
+      "values": {
+        "popularity": result[4],
+        "count": result[5],
+        "duration_ms": result[6],
+        "danceability": result[7],
+        "energy": result[8],
+        "liveness": result[9],
+        "valence": result[10],
+        "instrumentalness": result[11],
+        "tempo": result[12],
+        "speechiness": result[13],
+        "loudness": result[14],
+        "acousticness": result[15]
+      }
     }
     rows.append(song)
-    for key, value in song.items():
-      if key in stats:
-        stats[key] += value
-  return { "header": header, "data": rows, "stats": stats }
+    for key, value in song["values"].items():
+      stats[key] += value
+  return { "headers": headers, "data": rows, "stats": stats }
