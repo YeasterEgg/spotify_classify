@@ -1,0 +1,31 @@
+{
+  "name": "pymood",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify src/index.js -o build/bundle.js --transform babelify",
+    "watch": "watchify -d src/index.js -o build/bundle.js --transform babelify",
+    "server": "python3 main.py",
+    "sync": "browser-sync start --proxy 'localhost:4000' --files 'build'",
+    "start": "npm run watch & npm run server & npm run sync"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-polyfill": "^6.20.0",
+    "babel-preset-latest": "^6.16.0",
+    "babel-preset-stage-2": "^6.18.0",
+    "babelify": "^7.3.0",
+    "browser-sync": "^2.18.6",
+    "browserify": "^13.3.0",
+    "watchify": "^3.8.0"
+  },
+  "dependencies": {
+    "color": "^1.0.3",
+    "d3": "^4.4.1"
+  }
+}

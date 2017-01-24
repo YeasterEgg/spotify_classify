@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <title>D3js Tests</title>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Playing with d3js">
+    <meta name="keywords" content="">
+    <meta name="author" content="Yeasteregg">
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png">
+    <link rel="stylesheet" type="text/css" href="./build/style.css" />
+  </head>
+  <body style="background-color: #eee">
+
+    <div class="load_data">
+      <label>Select song limit, or none.</label>
+      <input type="number" id="limit" value=0></input>
+      <button id="load">Load Data</button>
+    </div>
+
+    <div class="select_container">
+      <span class="selectX select"></span>
+      <span class="selectY select"></span>
+    </div>
+
+    <div class="buttons">
+      <span class="scatterplot_button"></span>
+      <span class="heatmap_button"></span>
+    </div>
+
+    <div class="chart"></div>
+
+    <script src="./build/bundle.js"></script>
+  </body>
+</html>

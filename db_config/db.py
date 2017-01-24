@@ -18,7 +18,8 @@
 #   `count` bigint(20) DEFAULT NULL,
 #   `active` bool DEFAULT FALSE,
 #   `good_for_model` bool DEFAULT TRUE,
-#   PRIMARY KEY (`id`,`spotify_id`)
+#   PRIMARY KEY (`id`,`spotify_id`),
+#   KEY (`count`, `popularity`)
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 import os
@@ -37,7 +38,7 @@ def mysql():
     return MySQLdb.connect(user = "root", db = "py_mood", host = "localhost")
 
 def training_to_json(limit):
-  sql = "SELECT spotify_id, mood, artist, title, popularity, count, duration_ms, danceability, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, acousticness FROM tracks WHERE active IS TRUE ORDER BY RAND()"
+  sql = "SELECT spotify_id, mood, artist, title, popularity, count, duration_ms, danceability, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness, acousticness, (count / popularity) FROM tracks WHERE active IS TRUE AND good_for_model IS TRUE AND popularity > 0 ORDER BY (count / popularity) DESC"
   if limit:
     sql += " LIMIT {}".format(limit)
   cursor = mysql().cursor()
@@ -55,7 +56,8 @@ def training_to_json(limit):
       "tempo",
       "speechiness",
       "loudness",
-      "acousticness"
+      "acousticness",
+      "importance"
     ],
     "textual":[
       "spotify_id",
@@ -86,7 +88,8 @@ def training_to_json(limit):
         "tempo": result[12],
         "speechiness": result[13],
         "loudness": result[14],
-        "acousticness": result[15]
+        "acousticness": result[15],
+        "importance": result[16]
       }
     }
     rows.append(song)

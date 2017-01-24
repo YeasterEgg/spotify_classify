@@ -12,9 +12,9 @@ import pandas as pd
 import os
 
 def exclude_double_songs(mysql, moods_tuple):
-  ''' Not really sure, seems to be the longest query ever, but it should work '''
+  ''' Ideally and technically it works. At the same time, it take soooo much fucking time... '''
   cursor = mysql.cursor()
-  cursor.execute("UPDATE tracks t0 SET t0.good_for_model = 0 WHERE t0.spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t2 GROUP BY t2.spotify_id HAVING COUNT(*) = 2)")
+  cursor.execute("UPDATE tracks t0 SET good_for_model = 0 WHERE t0.spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t1 WHERE t1.mood = 'sad' AND spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t2 WHERE t2.mood = 'happy'));")
   mysql.commit()
 
 def read_database(mysql, moods_tuple, threshold = 1):
