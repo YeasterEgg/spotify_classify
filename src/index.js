@@ -1,46 +1,37 @@
 import * as d3 from "d3"
 import * as heat_map from './lib/heat_map.js'
 
-const chartWidth = window.innerWidth * 0.9
-const chartHeight = 640
-const margin = {top: chartWidth * 0.1, right: chartHeight * 0.1, bottom: chartWidth * 0.1, left: chartHeight * 0.1};
-const width  = chartWidth - margin.left - margin.right
-const height = chartHeight - margin.top - margin.bottom
+const drawChartContainer = (chartSelector) => {
+  return d3.select(chartSelector)
+           .append("svg")
+           .attr("width", "100%")
+           .attr("height", "100%")
+}
 
-const retrieveData = (url, chartSelector, buttonSelector) => {
-  let limit = d3.select("#limit").property("value")
-  let limitedUrl = (limit == 0) ? url : url + "?limit=" + limit
+const drawHeatmap = () => {
+  const limitedUrl = "/songs?limit=1000"
   d3.json(limitedUrl, (error, data) => {
     if(data){
       document.variables = data
-      const chart = drawChart(chartSelector, "chartSvg")
-      console.log(chart)
-      createButton(buttonSelector, chartSelector, chart)
+      const sizes = d3.select(".chart_box").node().getBoundingClientRect()
+
+      document.chartSizes = {
+        width: sizes.width * 0.85,
+        height: sizes.height * 0.85,
+        marginLeft: sizes.width * 0.10,
+        marginRight: sizes.width * 0.05,
+        marginTop: sizes.width * 0.05,
+        marginBottom: sizes.width * 0.10,
+      }
+
+      const heatmap = drawChartContainer(".heatmap")
+      const scatterplot = drawChartContainer(".scatterplot")
+      heat_map.drawChart(heatmap, scatterplot, sizes)
     }else{
-      reject(Error(error))
+      Error(error)
     }
   })
+
 }
 
-const createButton = (buttonSelector, chartSelector, chart) => {
-  d3.select(buttonSelector + "_button")
-    .append("button")
-    .text("Draw heatmap")
-    .on("click", heat_map.drawChart.bind(this, chartSelector, margin, width, height, chart))
-}
-
-const drawChart = (selector, chartClass) => {
-  return d3.select(selector)
-           .append("svg")
-           .classed(chartClass, true)
-           .attr("width", width + margin.left + margin.right)
-           .attr("height", height + margin.top + margin.bottom)
-           .append("g")
-           .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-}
-
-const limitButton = () => {
-  d3.select("#load").on("click", retrieveData.bind(this, "/songs", ".chart", ".heatmap"))
-}
-
-document.addEventListener('DOMContentLoaded', limitButton);
+document.addEventListener('DOMContentLoaded', drawHeatmap);

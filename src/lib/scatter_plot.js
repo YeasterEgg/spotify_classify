@@ -1,65 +1,65 @@
 import * as d3 from "d3"
 
-const drawChart = (chartSelector, optionsSelector) => {
-  let chart = d3.select(".chartSvg")
-  let variables = document.variables["data"]
+const drawChart = (xVariableIndex, yVariableIndex, chart) => {
+  const sizes = document.chartSizes
+  const variableX = document.variables.headers.numeric[xVariableIndex]
+  const variableY = document.variables.headers.numeric[yVariableIndex]
+  const variables = document.variables["data"]
+  const radius = 10 / Math.log10(variables.length)
+  const yScale = d3.scaleLinear().domain([0, 1]).range([sizes.height, 0])
+  const xScale = d3.scaleLinear().domain([0, 1]).range([sizes.width, 0])
+  const xAxis = d3.axisBottom(xScale)
+  const yAxis = d3.axisLeft(yScale)
 
-  let radius = 10 / Math.log10(Object.keys(variables).length)
-
-  let variableX = d3.select(optionsSelector[0]).property("value")
-  let variableY = d3.select(optionsSelector[1]).property("value")
-
-  let yScale = d3.scaleLinear().domain([0, 1]).range([chart.node().height.baseVal.value, 0])
-  let xScale = d3.scaleLinear().domain([0, 1]).range([chart.node().width.baseVal.value, 0])
-
-  if(chart.selectAll("circle").size() == 0){
-    chart.selectAll("circle")
-         .data(variables, (d) => { return d.spotify_id; })
-         .enter()
-         .append("circle")
-         .attr("stroke-width", 3)
-         .attr("id", (d) => { return "spo_" + d.spotify_id; })
-         .attr("fill", "transparent")
-         .attr("r", radius)
-         .on("click", (d) => { outlier(d) })
-         .on("mouseover", circleMouseOver)
-         .on("mouseout", circleMouseOver)
-
-    chart.selectAll("circle")
-         .transition()
-         .attr("cx", (d) => { return xScale(d["values"][variableX]); })
-         .attr("cy", (d) => { return yScale(d["values"][variableY]); })
-         .attr("stroke", (d) => { return d.mood == "sad" ? "red" : "blue"; })
-
-  }else{
-    chart.selectAll("circle")
-         .data(variables, (d) => {return d.spotify_id;})
-         .transition()
-         .attr("cx", (d) => { return xScale(d["values"][variableX]); })
-         .attr("cy", (d) => { return yScale(d["values"][variableY]); })
+  const plot = do {
+    if(chart.selectAll("g").size() == 0){
+      chart.append("g")
+           .append("svg")
+    }else{
+      chart.selectAll("g")
+           .selectAll("svg")
+    }
   }
-}
 
-const outlier = (point) => {
-  let circle = d3.select("#spo_" + point.spotify_id)
-  circle.attr("opacity") == "1" ? circle.attr("opacity", "0.2") : circle.attr("opacity", "1")
-}
+  plot.attr("id", "heatmap_plot")
+      .attr("width", sizes.width + "px")
+      .attr("height", sizes.height + "px")
+      .attr("x", sizes.marginLeft + "px")
+      .attr("y", sizes.marginTop + "px")
 
-const circleMouseOver = (song) => {
-  circle = d3.select("#spo_" + song.spotify_id)
-  svg.append("text")
-     .attr({
-       id: "txt_" + song.spotify_id,
-       x: () => { return xScale(circle.x) - 30; },
-       y: () => { return yScale(circle.y) - 15; }
-     })
-     .text(function() {
-       return song.spotify_id;
-     })
-}
+  if(plot.selectAll("circle").size() == 0){
+    plot.selectAll("circle")
+        .data(variables, (d) => { return d.spotify_id + d.mood; })
+        .enter()
+        .append("circle")
+        .attr("stroke-width", 3)
+        .attr("id", (d) => { return "spo_" + d.spotify_id; })
+        .attr("fill", "transparent")
+        .attr("r", radius)
 
-const circleMouseOut = (song) => {
-  d3.select("#txt_" + song.spotify_id).remove()
+    plot.selectAll("circle")
+        .transition()
+        .attr("cx", (d) => { return xScale(d["values"][variableX]); })
+        .attr("cy", (d) => { return yScale(d["values"][variableY]); })
+        .attr("stroke", (d) => { return d.mood == "sad" ? "red" : "blue"; })
+  }else{
+    plot.selectAll("circle")
+        .data(variables, (d) => {return d.spotify_id + d.mood;})
+        .transition()
+        .attr("cx", (d) => { return xScale(d["values"][variableX]); })
+        .attr("cy", (d) => { return yScale(d["values"][variableY]); })
+  }
+
+  chart.append("g")
+       .attr("class", "x axis")
+       .attr("transform", "translate(" + sizes.marginLeft + "," + (sizes.marginTop + sizes.height) + ")")
+       .call(xAxis)
+
+  chart.append("g")
+       .attr("class", "y axis")
+       .attr("transform", "translate(" + sizes.marginLeft + "," + sizes.marginTop + ")")
+       .call(yAxis)
+
 }
 
 module.exports = {
