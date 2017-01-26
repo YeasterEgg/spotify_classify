@@ -10,12 +10,7 @@ def calculate_parameters(mysql, limit = False):
   X = df.drop("mood",1)
   Y = df[["mood"]]
   X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.2)
-
-  clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
-                    hidden_layer_sizes=(5, 2), random_state=1)
-
+  clf = MLPClassifier(solver='lbfgs', alpha=0.01, hidden_layer_sizes=(5, 2), random_state=1)
   clf.fit(X_train, y_train)
   score = clf.score(X_test, y_test)
-
-  clf.fit(X, Y)
-  return clf
+  return clf, score
