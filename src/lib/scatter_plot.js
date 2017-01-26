@@ -42,24 +42,44 @@ const drawChart = (xVariableIndex, yVariableIndex, chart) => {
         .attr("cx", (d) => { return xScale(d["values"][variableX]); })
         .attr("cy", (d) => { return yScale(d["values"][variableY]); })
         .attr("stroke", (d) => { return d.mood == "sad" ? "red" : "blue"; })
+
+    chart.append("g")
+         .attr("class", "x_axis")
+         .attr("transform", "translate(" + sizes.marginLeft + "," + (sizes.marginTop + sizes.height) + ")")
+         .call(xAxis)
+
+    chart.append("g")
+         .attr("class", "y_axis")
+         .attr("transform", "translate(" + sizes.marginLeft + "," + sizes.marginTop + ")")
+         .call(yAxis)
+
+    chart.append("text")
+         .attr("class", "x_axis_title")
+         .attr("text-anchor", "middle")
+         .attr("font-family", "Arial, Helvetica, sans-serif")
+         .attr("transform", "translate(" + (sizes.marginLeft + sizes.width / 2) + "," + (sizes.marginTop + sizes.height + sizes.marginBottom / 2) + ")")
+         .text(variableX)
+
+    chart.append("text")
+         .attr("class", "y_axis_title")
+         .attr("text-anchor", "middle")
+         .attr("font-family", "Arial, Helvetica, sans-serif")
+         .attr("transform", "translate(" + (sizes.marginLeft / 2) + "," + (sizes.marginTop + sizes.height / 2) + ") rotate(-90)")
+         .text(variableY)
+
   }else{
     plot.selectAll("circle")
         .data(variables, (d) => {return d.spotify_id + d.mood;})
         .transition()
         .attr("cx", (d) => { return xScale(d["values"][variableX]); })
         .attr("cy", (d) => { return yScale(d["values"][variableY]); })
+
+    d3.select(".x_axis_title")
+      .text(variableX)
+
+    d3.select(".y_axis_title")
+      .text(variableY)
   }
-
-  chart.append("g")
-       .attr("class", "x axis")
-       .attr("transform", "translate(" + sizes.marginLeft + "," + (sizes.marginTop + sizes.height) + ")")
-       .call(xAxis)
-
-  chart.append("g")
-       .attr("class", "y axis")
-       .attr("transform", "translate(" + sizes.marginLeft + "," + sizes.marginTop + ")")
-       .call(yAxis)
-
 }
 
 module.exports = {

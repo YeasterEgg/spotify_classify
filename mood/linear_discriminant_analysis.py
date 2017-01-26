@@ -5,8 +5,8 @@ from sklearn import model_selection
 from sklearn.externals import joblib
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-def read_database(mysql, moods_tuple, threshold = 1):
-  return pd.read_sql_query("SELECT spotify_id, mood, acousticness, danceability, duration_ms, energy, instrumentalness, liveness, loudness, speechiness, tempo, valence FROM tracks WHERE mood in {} AND count > {}".format(moods_tuple, threshold), con = mysql, index_col = ["spotify_id"])
+def read_database(mysql, moods_tuple):
+  return pd.read_sql_query("SELECT spotify_id, mood, acousticness, danceability, duration_ms, energy, instrumentalness, liveness, loudness, speechiness, tempo, valence FROM tracks WHERE mood in {} AND active = 1 AND good_for_model = 1".format(moods_tuple), con = mysql, index_col = ["spotify_id"])
 
 def calculate_parameters(mysql, moods = ("happy", "sad")):
   moods_tuple = tuple(sorted(moods))

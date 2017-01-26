@@ -17,8 +17,8 @@ def exclude_double_songs(mysql, moods_tuple):
   cursor.execute("UPDATE tracks t0 SET good_for_model = 0 WHERE t0.spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t1 WHERE t1.mood = 'sad' AND spotify_id IN (SELECT spotify_id FROM (SELECT * FROM tracks) AS t2 WHERE t2.mood = 'happy'));")
   mysql.commit()
 
-def read_database(mysql, moods_tuple, threshold = 1):
-  return pd.read_sql_query("SELECT spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND good_for_model = 1 AND count > {}".format(moods_tuple, threshold), con = mysql, index_col = ["spotify_id"])
+def read_database(mysql, moods_tuple):
+  return pd.read_sql_query("SELECT spotify_id, mood, duration_ms, danceability, acousticness, energy, liveness, valence, instrumentalness, tempo, speechiness, loudness FROM tracks WHERE mood in {} AND good_for_model = 1 AND active = 1".format(moods_tuple), con = mysql, index_col = ["spotify_id"])
 
 def evaluate_models(mysql, moods, test_size = 0.2, seed = 42, num_folds = 50, scoring = "accuracy"):
   moods_tuple = tuple(sorted(moods))
