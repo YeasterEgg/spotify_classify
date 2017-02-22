@@ -4,6 +4,9 @@ from jinja2 import Environment, FileSystemLoader
 from dotenv import load_dotenv
 from os.path import dirname, join
 import numpy as np
+import asyncio
+import aiohttp
+import pdb
 
 import json as json_parser
 import mood as ml
@@ -19,7 +22,9 @@ app.static('/build', './build')
 env = Environment(loader=FileSystemLoader('./build/.'))
 
 @app.route("/")
-def home(request):
+async def home(request):
+  url = "http://127.0.0.1:4000/visited_website?site=pymood" if (app.debug == True) else "https://grokked.it/visited_website?site=pymood"
+  asyncio.ensure_future(message_in_a_bottle(url))
   return html(env.get_template('index.html').render())
 
 @app.route("/songs")
@@ -57,10 +62,16 @@ def playlist_post(request):
   else:
     return json({"NOPE"})
 
+async def message_in_a_bottle(url):
+  r = await aiohttp.get(url)
+  r.close()
+
 def get_extremes(obj_list, variable):
   mn = min(obj_list, key = lambda x: float(x["values"][variable]))["values"][variable]
   mx = max(obj_list, key = lambda x: float(x["values"][variable]))["values"][variable]
   return float(mn), float(mx)
 
+loop = asyncio.get_event_loop()
+
 if __name__ == "__main__":
-  app.run(host="127.0.0.1", port=4000, debug=True)
+  app.run(host="127.0.0.1", port=5000, debug=True, loop=loop)
