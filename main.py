@@ -23,7 +23,7 @@ env = Environment(loader=FileSystemLoader('./build/.'))
 
 @app.route("/")
 async def home(request):
-  url = "http://127.0.0.1:4000/visited_website?site=pymood" if (app.debug == True) else "https://grokked.it/visited_website?site=pymood"
+  url = "http://127.0.0.1:4000/visited_website?site=PyMood" if (app.debug == True) else "https://grokked.it/visited_website?site=PyMood"
   asyncio.ensure_future(message_in_a_bottle(url))
   return html(env.get_template('index.html').render())
 
