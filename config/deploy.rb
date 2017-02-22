@@ -14,16 +14,26 @@ set :branch, ENV["BRANCH"] || 'master'
 
 set :scm, :git
 
-after :"deploy:finished", :change_ownership do
-  on roles(:app) do
-    execute "sudo chown -R www-data:www-data #{release_path}/"
-  end
-end
+namespace :deploy do
 
-after :change_ownership, :copy_dotenv do
-  on roles(:web) do
-    execute "ln -ns #{shared_path}/.env #{current_path}/."
-    execute "ln -ns #{shared_path}/.env #{current_path}/mood/."
-    execute "ln -ns #{shared_path}/.env #{current_path}/db_config/."
+  after :"deploy:finished", :change_ownership do
+    on roles(:app) do
+      execute "sudo chown -R www-data:www-data #{release_path}/"
+    end
   end
+
+  after :"deploy:change_ownership", :copy_dotenv do
+    on roles(:web) do
+      execute "ln -ns #{shared_path}/.env #{current_path}/."
+      execute "ln -ns #{shared_path}/.env #{current_path}/mood/."
+      execute "ln -ns #{shared_path}/.env #{current_path}/db_config/."
+    end
+  end
+
+  after :"deploy:copy_dotenv", :restart_app do
+    on roles(:app) do
+      execute "sudo systemctl restart pymood"
+    end
+  end
+
 end
