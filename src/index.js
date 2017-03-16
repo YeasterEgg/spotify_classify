@@ -1,37 +1,64 @@
-import * as d3 from "d3"
-import * as heat_map from './lib/heat_map.js'
+const d3 = require('d3')
+const drawHeatMap = require('./lib/heat_map.js').drawHeatMap
+const drawScatter = require('./lib/scatter_plot.js').drawScatter
+const drawRadial = require('./lib/radial_plot.js').drawRadial
 
-const drawChartContainer = (chartSelector) => {
-  return d3.select(chartSelector)
-           .append("svg")
-           .attr("width", "100%")
-           .attr("height", "100%")
+const w = () => {
+  return Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
+}
+const h = () => {
+  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
 }
 
-const drawHeatmap = () => {
-  const limitedUrl = "/songs?limit=1000"
-  d3.json(limitedUrl, (error, data) => {
-    if(data){
-      document.variables = data
-      const sizes = d3.select(".chart_box").node().getBoundingClientRect()
+const sizes = (w, h) => {
+  const sizes = {}
+  sizes["marginLeft"]   = w / 15
+  sizes["marginRight"]  = w / 30
+  sizes["marginTop"]    = h / 30
+  sizes["marginBottom"] = h / 10
+  sizes["chartWidth"]   = w / 2 - sizes.marginLeft - sizes.marginRight
+  sizes["chartHeight"]  = h - sizes.marginTop - sizes.marginBottom
+  return sizes
+}
 
-      document.chartSizes = {
-        width: sizes.width * 0.85,
-        height: sizes.height * 0.85,
-        marginLeft: sizes.width * 0.10,
-        marginRight: sizes.width * 0.05,
-        marginTop: sizes.width * 0.05,
-        marginBottom: sizes.width * 0.10,
-      }
+document.world = {
+  w: null,
+  h: null,
+  container: null,
+  heatMap: null,
+  scatterPlot: null,
+  radialPlot: null,
+  data: null,
+  visible: "heatMap",
+  sizes: null,
+}
 
-      const heatmap = drawChartContainer(".heatmap")
-      const scatterplot = drawChartContainer(".scatterplot")
-      heat_map.drawChart(heatmap, scatterplot, sizes)
-    }else{
-      Error(error)
-    }
+const drawCharts = () => {
+  fetch("/songs?limit=1000").then( (response) => {
+    return response.json()
+  }).then( (data) => {
+    drawContainer(data)
   })
-
 }
 
-document.addEventListener('DOMContentLoaded', drawHeatmap);
+const drawContainer = (data) => {
+  document.world.w    = w()
+  document.world.h    = h()
+  document.world.sizes = sizes(document.world.w, document.world.h)
+  document.world.data = data
+  document.world.container = d3.select(".charts-container")
+                               .append("svg")
+                               .attr("width", document.world.w)
+                               .attr("height", document.world.h)
+  drawHeatMap()
+  drawScatter()
+  drawRadial()
+  // window.onResize = () => {redrawAll(container, heatMap)}
+}
+
+const redrawAll = (container, heatMap) => {
+  container.attr("width", w() )
+           .attr("height", h() )
+}
+
+document.addEventListener('DOMContentLoaded', drawCharts);

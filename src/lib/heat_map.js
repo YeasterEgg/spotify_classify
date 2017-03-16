@@ -1,5 +1,5 @@
-import * as d3 from "d3"
-import * as scatter_plot from './scatter_plot.js'
+const d3 = require('d3')
+const fillScatter =  require('./scatter_plot.js').fillScatter
 
 const valueToColor = (value) => {
   let others
@@ -12,89 +12,114 @@ const valueToColor = (value) => {
   }
 }
 
-const drawChart = (chart, scatterplot, containerDimensions) => {
-  const sizes = document.chartSizes
-  const plot = chart.append("g")
-                    .append("svg")
-                    .attr("id", "heatmap_plot")
-                    .attr("width", sizes.width + "px")
-                    .attr("height", sizes.height + "px")
-                    .attr("x", sizes.marginLeft + "px")
-                    .attr("y", sizes.marginTop + "px")
+export const drawHeatMap = () => {
+  document.world.heatMap = document.world
+                                   .container
+                                   .append("g")
+                                   .attr("class", "charts-heatMap_container")
+                                   .style("opacity", 0)
 
-  const matrix = document.variables["cov"]
-  const headers = document.variables["headers"]["numeric"]
-  const variable_no = matrix.length
-  const cellSizePerc = 100 / variable_no
-  const cellWidthPx = sizes.width / variable_no
-  const cellHeightPx = sizes.height / variable_no
+  const matrix = document.world.data["cov"]
+  const headers = document.world.data["headers"]["numeric"]
+  const variablesNo = matrix.length
+  const cellSizes = computeCellSizes(variablesNo)
+  drawAxis(headers, cellSizes)
+  drawCells(matrix, cellSizes, variablesNo)
+  document.world
+          .heatMap
+          .transition()
+          .duration(500)
+          .style("opacity", 1)
+}
+
+const computeCellSizes = (variablesNo) => {
+  const cellSizes = {}
+  cellSizes["cellWidthPx"]  = document.world.sizes.chartWidth / variablesNo
+  cellSizes["cellHeightPx"] = document.world.sizes.chartHeight / variablesNo
+  cellSizes["xAxisLength"]  = document.world.sizes.chartWidth
+  cellSizes["xAxisMargin"]  = document.world.sizes.chartWidth / variablesNo - cellSizes.cellWidthPx
+  cellSizes["yAxisLength"]  = document.world.sizes.chartHeight + cellSizes.cellHeightPx
+  cellSizes["yAxisMargin"]  = document.world.sizes.chartHeight / variablesNo
+  return cellSizes
+}
+
+const drawCells = (matrix, cellSizes, variablesNo) => {
+  const plot = document.world
+                       .heatMap
+                       .append("g")
+                       .attr("class", "charts-heatMap_plot")
   const colorScale = d3.scaleLinear().domain([-1, 1]).range([-255, 255])
-  const xAxisLength = sizes.width - sizes.width / (2 * variable_no)
-  const xAxisMargin = sizes.width / (2 * variable_no)
-  const yAxisLength = sizes.height - sizes.height / (2 * variable_no)
-  const yAxisMargin = sizes.height / (2 * variable_no)
-
-  const xScale = d3.scalePoint()
-                   .domain(headers)
-                   .range([xAxisMargin , xAxisLength])
-
-  const yScale = d3.scalePoint()
-                   .domain(headers)
-                   .range([yAxisMargin , yAxisLength])
-
-  const xAxis = d3.axisBottom(xScale)
-  const yAxis = d3.axisLeft(yScale)
 
   matrix.map((variable, idx) => {
+    const otherIdx = variablesNo - 1 - idx
     const group = plot.append("g")
                       .selectAll("rect")
                       .data(variable)
                       .enter()
                       .append("g")
-                      .attr("id", (d, i) => {return "r_" + idx + "_" + i})
-                      .on("mouseover", (d, i) => {mouseOverHandler(d, idx, i)} )
-                      .on("mouseout", (d, i) => {mouseOutHandler(d, idx, i)} )
-                      .on("click", (d, i) => {clickHandler(d, idx, i, scatterplot)} )
+                      .attr("id", (d, i) => {return "r_" + otherIdx + "_" + i})
+
+    group.on("mouseover", (d, i) => {mouseOverHandler(d, otherIdx, i)} )
+    group.on("mouseout", (d, i) => {mouseOutHandler(d, otherIdx, i)} )
+    group.on("click", (d, i) => {clickHandler(otherIdx, i)} )
 
     group.append("rect")
-         .attr("x", (d,i) => {return cellSizePerc * i + "%"})
-         .attr("y", (d,i) => {return cellSizePerc * idx + "%"})
+         .attr("x", (d,i) => {return cellSizes.cellWidthPx * i + document.world.sizes.marginLeft + 1})
+         .attr("y", (d,i) => {return cellSizes.cellHeightPx * otherIdx + document.world.sizes.marginTop})
          .attr("rx", 5)
          .attr("ry", 5)
-         .attr("width", cellSizePerc + "%")
-         .attr("height", cellSizePerc + "%")
+         .attr("width", cellSizes.cellWidthPx)
+         .attr("height", cellSizes.cellHeightPx)
          .attr("fill", (d) => {return valueToColor(colorScale(d))})
 
     group.append("text")
-         .attr("x", (d,i) => {return cellSizePerc * (i + 0.5)+ "%"})
-         .attr("y", (d,i) => {return cellSizePerc * (idx + 0.5) + "%"})
-         .attr("width", cellSizePerc + "%")
+         .attr("x", (d,i) => {return cellSizes.cellWidthPx * (i + 0.5) + document.world.sizes.marginLeft + 1})
+         .attr("y", (d,i) => {return cellSizes.cellHeightPx * (otherIdx + 0.5) + document.world.sizes.marginTop})
+         .attr("width", cellSizes.cellWidthPx)
+         .attr("height", cellSizes.cellHeightPx)
          .attr("text-anchor", "middle")
          .attr("alignment-baseline", "central")
-         .attr("height", cellSizePerc + "%")
          .attr("font-size", "80%")
          .attr("font-family", "Arial, Helvetica, sans-serif")
          .text((d) => {return Math.round(d * 1000) / 1000})
   })
+}
 
-  chart.append("g")
-       .attr("class", "x axis")
-       .attr("transform", "translate(" + sizes.marginLeft + "," + (sizes.marginTop + sizes.height) + ")")
-       .call(xAxis)
-       .selectAll("text")
-       .attr("x", cellWidthPx / 2 + "px")
-       .attr("transform", "rotate(45)")
-       .attr("font-family", "Arial, Helvetica, sans-serif")
+const drawAxis = (headers, cellSizes) => {
+  const xHeaders = headers.concat([""])
+  const yHeaders = [""].concat(headers)
+  yHeaders.reverse()
+  const xScale = d3.scalePoint()
+                   .domain(xHeaders)
+                   .range([cellSizes.xAxisMargin , cellSizes.xAxisLength])
+  const yScale = d3.scalePoint()
+                   .domain(yHeaders)
+                   .range([cellSizes.yAxisMargin , cellSizes.yAxisLength])
+  const xAxis = d3.axisBottom(xScale)
+  const yAxis = d3.axisLeft(yScale)
 
-  chart.append("g")
-       .attr("class", "y axis")
-       .attr("transform", "translate(" + sizes.marginLeft + "," + sizes.marginTop + ")")
-       .call(yAxis)
-       .selectAll("text")
-       .attr("y", "-" + cellHeightPx / 2 + "px")
-       .attr("x", "5px")
-       .attr("transform", "rotate(-45)")
-       .attr("font-family", "Arial, Helvetica, sans-serif")
+  document.world
+          .heatMap
+          .append("g")
+          .attr("class", "x_axis")
+          .attr("transform", "translate(" + document.world.sizes.marginLeft + "," + (document.world.sizes.marginTop + document.world.sizes.chartHeight) + ")")
+          .call(xAxis)
+          .selectAll("text")
+          .attr("x", -cellSizes.cellWidthPx / 2 + "px")
+          .attr("y", cellSizes.cellHeightPx / 2 + "px")
+          .attr("transform", "rotate(-70)")
+          .attr("font-family", "Arial, Helvetica, sans-serif")
+
+  document.world
+          .heatMap
+          .append("g")
+          .attr("class", "y_axis")
+          .attr("transform", "translate(" + document.world.sizes.marginLeft + "," + (document.world.sizes.marginTop - cellSizes.cellHeightPx) + ")")
+          .call(yAxis)
+          .selectAll("text")
+          .attr("y", cellSizes.cellHeightPx / 2 + "px")
+          .attr("transform", "rotate(-20)")
+          .attr("font-family", "Arial, Helvetica, sans-serif")
 }
 
 const mouseOverHandler = (rect, variable1Idx, variable2Idx) => {
@@ -107,12 +132,6 @@ const mouseOutHandler = (rect, variable1Idx, variable2Idx) => {
     .attr("opacity", 1)
 }
 
-const clickHandler = (rect, variable1Idx, variable2Idx, scatterplot) => {
-  console.log(variable1Idx,variable2Idx)
-  scatter_plot.drawChart(variable1Idx, variable2Idx, scatterplot)
-}
-
-
-module.exports = {
-  drawChart: drawChart
+const clickHandler = (variable1Idx, variable2Idx) => {
+  fillScatter(variable1Idx, variable2Idx)
 }
