@@ -1,7 +1,7 @@
 const d3 = require('d3')
-const drawHeatMap = require('./lib/heat_map.js').drawHeatMap
-const drawScatter = require('./lib/scatter_plot.js').drawScatter
-const drawRadial = require('./lib/radial_plot.js').drawRadial
+const HeatMap = require('./lib/heat_map.js').HeatMap
+const ScatterPlot = require('./lib/scatter_plot.js').ScatterPlot
+const RadialPlot = require('./lib/radial_plot.js').RadialPlot
 
 const w = () => {
   return Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
@@ -12,6 +12,8 @@ const h = () => {
 
 const sizes = (w, h) => {
   const sizes = {}
+  sizes["w"]            = w
+  sizes["h"]            = h
   sizes["marginLeft"]   = w / 15
   sizes["marginRight"]  = w / 30
   sizes["marginTop"]    = h / 30
@@ -19,18 +21,6 @@ const sizes = (w, h) => {
   sizes["chartWidth"]   = w / 2 - sizes.marginLeft - sizes.marginRight
   sizes["chartHeight"]  = h - sizes.marginTop - sizes.marginBottom
   return sizes
-}
-
-document.world = {
-  w: null,
-  h: null,
-  container: null,
-  heatMap: null,
-  scatterPlot: null,
-  radialPlot: null,
-  data: null,
-  visible: "heatMap",
-  sizes: null,
 }
 
 const drawCharts = () => {
@@ -42,23 +32,17 @@ const drawCharts = () => {
 }
 
 const drawContainer = (data) => {
-  document.world.w    = w()
-  document.world.h    = h()
-  document.world.sizes = sizes(document.world.w, document.world.h)
-  document.world.data = data
-  document.world.container = d3.select(".charts-container")
+  const currentSizes = sizes(w(), h())
+  const container = d3.select(".charts-container")
                                .append("svg")
-                               .attr("width", document.world.w)
-                               .attr("height", document.world.h)
-  drawHeatMap()
-  drawScatter()
-  drawRadial()
-  // window.onResize = () => {redrawAll(container, heatMap)}
-}
-
-const redrawAll = (container, heatMap) => {
-  container.attr("width", w() )
-           .attr("height", h() )
+                               .attr("width", currentSizes.w)
+                               .attr("height", currentSizes.h)
+  const heatMap = new HeatMap(currentSizes, container, data)
+  const scatterPlot = new ScatterPlot(currentSizes, container, data)
+  const radialPlot = new RadialPlot(currentSizes, container, data)
+  heatMap.draw(scatterPlot)
+  scatterPlot.draw(heatMap, radialPlot)
+  radialPlot.draw(heatMap)
 }
 
 document.addEventListener('DOMContentLoaded', drawCharts);
