@@ -30,7 +30,7 @@ export class RadialPlot{
     this.baseRadiusGenerator = d3.arc()
                                  .innerRadius(0)
                                  .outerRadius(this.baseValue)
-                                 .startAngle((d, i) => {return i * this.angle})
+                                 .startAngle((d, i) => {console.log("gen", d, i); return i * this.angle})
                                  .endAngle((d, i) => {return (i + 1) * this.angle})
 
     this.radiusGenerator = d3.arc()
@@ -44,6 +44,7 @@ export class RadialPlot{
         .enter()
         .append("g")
         .append("path")
+        .attr("id", (d, i) => {return "arc_" + i})
         .attr("d", this.baseRadiusGenerator)
   }
 
@@ -61,10 +62,10 @@ export class RadialPlot{
         .duration(500)
         .ease(d3.easeQuadInOut)
         .attr("d", this.radiusGenerator)
-        .attr("fill", (d) => {console.log(d); return this.partialColor(d, song)})
+        .attr("fill", (d) => {return this.partialColor(d, song)})
 
-    this.plot.on("mouseover", (d, i) => {showData(d, i)} )
-    this.plot.on("mouseout", (d, i) => {hideData(d, i)}  )
+    this.chart.selectAll("path").on("mouseover", (d, i) => {this.showData(song, d, i)} )
+    this.chart.selectAll("path").on("mouseout", (d, i) => {this.hideData(song, d, i)} )
   }
 
   hide(){
@@ -99,5 +100,22 @@ export class RadialPlot{
         return "#" + stringedResult.substr(-2,2) + stringedResult.substr(-2,2) + "ff"
       break
     }
+  }
+
+  showData(song, d, i){
+    const newD = d * 1.2
+    d3.select("#arc_" + i)
+      .transition()
+      .duration(500)
+      .attr("d", this.radiusGenerator.bind(this, d * 1.2, i))
+      .attr("fill", (d) => {return this.partialColor(newD, song)})
+  }
+
+  hideData(song, d, i){
+    d3.select("#arc_" + i)
+      .transition()
+      .duration(500)
+      .attr("d", this.radiusGenerator.bind(this, d, i))
+      .attr("fill", (d) => {return this.partialColor(d, song)})
   }
 }
